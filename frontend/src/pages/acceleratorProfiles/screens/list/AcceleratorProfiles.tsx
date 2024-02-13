@@ -44,7 +44,7 @@ const AcceleratorProfiles: React.FC = () => {
         <EmptyStateFooter>
           <EmptyStateActions>
             <Button
-              data-id="display-accelerator-modal-button"
+              data-testid="display-accelerator-modal-button"
               variant={ButtonVariant.primary}
               onClick={() => navigate('/acceleratorProfiles/create')}
             >
