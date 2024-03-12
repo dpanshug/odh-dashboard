@@ -41,6 +41,9 @@ export enum SupportedArea {
   PERFORMANCE_METRICS = 'performance-metrics',
   TRUSTY_AI = 'trusty-ai',
 
+  /* Model Registry areas */
+  MODEL_REGISTRY = 'model-registry',
+
   /* Distributed Workloads areas */
   DISTRIBUTED_WORKLOADS = 'distributed-workloads',
 }
