@@ -2,11 +2,11 @@ import { Timestamp, TimestampTooltipVariant } from '@patternfly/react-core';
 import React from 'react';
 import { relativeTime } from '~/utilities/time';
 
-type RegisteredModelLastModifiedProps = {
+type TableLastModifiedRowProps = {
   lastUpdateTimeSinceEpoch?: string;
 };
 
-const RegisteredModelLastModified: React.FC<RegisteredModelLastModifiedProps> = ({
+const TableLastModifiedRow: React.FC<TableLastModifiedRowProps> = ({
   lastUpdateTimeSinceEpoch,
 }) => {
   if (!lastUpdateTimeSinceEpoch) {
@@ -31,4 +31,4 @@ const RegisteredModelLastModified: React.FC<RegisteredModelLastModifiedProps> = 
   );
 };
 
-export default RegisteredModelLastModified;
+export default TableLastModifiedRow;

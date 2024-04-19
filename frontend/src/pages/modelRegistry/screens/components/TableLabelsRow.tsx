@@ -9,26 +9,20 @@ import {
   Text,
 } from '@patternfly/react-core';
 import React from 'react';
-import { RegisteredModel } from '~/concepts/modelRegistry/types';
+import { ModelRegistryCustomProperties } from '~/concepts/modelRegistry/types';
 import useDebounceCallback from '~/utilities/useDebounceCallback';
-import { getRegisteredModelLabels } from './utils';
+import { getModelLabels } from '~/pages/modelRegistry/screens/utils';
 
 // Threshold count to decide whether to choose modal or popover
 const MODAL_THRESHOLD = 4;
 
-type RegisteredModelLabelsProps = {
-  rmName: string;
-  customProperties: RegisteredModel['customProperties'];
+type TableLabelsRowProps = {
+  name: string;
+  customProperties: ModelRegistryCustomProperties;
 };
 
-const RegisteredModelLabels: React.FC<RegisteredModelLabelsProps> = ({
-  rmName,
-  customProperties,
-}) => {
-  const rmLabels = React.useMemo(
-    () => getRegisteredModelLabels(customProperties),
-    [customProperties],
-  );
+const TableLabelsRow: React.FC<TableLabelsRowProps> = ({ name, customProperties }) => {
+  const rmLabels = React.useMemo(() => getModelLabels(customProperties), [customProperties]);
   const [filteredLabels, setFilteredLabels] = React.useState<string[]>([]);
   const [isLabelModalOpen, setIsLabelModalOpen] = React.useState(false);
   const [searchValue, setSearchValue] = React.useState('');
@@ -86,7 +80,7 @@ const RegisteredModelLabels: React.FC<RegisteredModelLabelsProps> = ({
       onClose={() => setIsLabelModalOpen(false)}
       description={
         <Text>
-          The following are all the labels of <strong>{rmName}</strong>
+          The following are all the labels of <strong>{name}</strong>
         </Text>
       }
       actions={[
@@ -130,4 +124,4 @@ const RegisteredModelLabels: React.FC<RegisteredModelLabelsProps> = ({
   );
 };
 
-export default RegisteredModelLabels;
+export default TableLabelsRow;

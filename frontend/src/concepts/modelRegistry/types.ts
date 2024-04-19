@@ -35,6 +35,8 @@ export enum ModelArtifactState {
   REFERENCE = 'REFERENCE',
 }
 
+export type ModelRegistryCustomProperties = Record<string, Record<string, string>>;
+
 export type ModelRegistryBase = {
   id: string;
   name: string;
@@ -42,7 +44,7 @@ export type ModelRegistryBase = {
   description?: string;
   createTimeSinceEpoch?: string;
   lastUpdateTimeSinceEpoch: string;
-  customProperties: Record<string, Record<string, string>>;
+  customProperties: ModelRegistryCustomProperties;
 };
 
 export type ModelArtifact = ModelRegistryBase & {

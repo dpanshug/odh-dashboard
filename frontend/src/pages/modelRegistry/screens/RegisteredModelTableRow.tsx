@@ -2,9 +2,9 @@ import * as React from 'react';
 import { ActionsColumn, Td, Tr } from '@patternfly/react-table';
 import { Text, TextVariants, Truncate } from '@patternfly/react-core';
 import { RegisteredModel } from '~/concepts/modelRegistry/types';
-import RegisteredModelLastModified from './RegisteredModelLastModified';
-import RegisteredModelLabels from './RegisteredModelLabels';
 import RegisteredModelOwner from './RegisteredModelOwner';
+import TableLabelsRow from './components/TableLabelsRow';
+import TableLastModifiedRow from './components/TableLastModifiedRow';
 
 type RegisteredModelTableRowProps = {
   registeredModel: RegisteredModel;
@@ -25,10 +25,10 @@ const RegisteredModelTableRow: React.FC<RegisteredModelTableRowProps> = ({
       )}
     </Td>
     <Td dataLabel="Labels">
-      <RegisteredModelLabels customProperties={rm.customProperties} rmName={rm.name} />
+      <TableLabelsRow customProperties={rm.customProperties} name={rm.name} />
     </Td>
     <Td dataLabel="Last modified">
-      <RegisteredModelLastModified lastUpdateTimeSinceEpoch={rm.lastUpdateTimeSinceEpoch} />
+      <TableLastModifiedRow lastUpdateTimeSinceEpoch={rm.lastUpdateTimeSinceEpoch} />
     </Td>
     <Td dataLabel="Owner">
       <RegisteredModelOwner registeredModelId={rm.id} />
