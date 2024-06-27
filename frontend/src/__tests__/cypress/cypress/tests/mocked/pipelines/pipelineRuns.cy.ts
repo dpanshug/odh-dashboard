@@ -7,18 +7,18 @@ import {
   mockProjectK8sResource,
   mockRouteK8sResource,
   buildMockRunKF,
-  buildMockJobKF,
   buildMockPipelineVersionsV2,
   buildMockPipelineVersionV2,
   buildMockPipelines,
   buildMockPipelineV2,
   buildMockExperimentKF,
+  buildMockRecurringRunKF,
 } from '~/__mocks__';
 import {
   activeRunsTable,
   pipelineRunsGlobal,
   pipelineRunFilterBar,
-  pipelineRunJobTable,
+  pipelineRecurringRunTable,
   archivedRunsTable,
   restoreRunModal,
   bulkRestoreRunModal,
@@ -95,8 +95,8 @@ const mockVersions = mockVersionIds.map((versionId) =>
   }),
 );
 
-const mockJobs = [
-  buildMockJobKF({
+const mockRecurringRuns = [
+  buildMockRecurringRunKF({
     display_name: 'test-pipeline',
     recurring_run_id: 'test-pipeline',
     experiment_id: 'test-experiment-1',
@@ -105,7 +105,7 @@ const mockJobs = [
       pipeline_version_id: 'test-version-1',
     },
   }),
-  buildMockJobKF({
+  buildMockRecurringRunKF({
     display_name: 'other-pipeline',
     recurring_run_id: 'other-test-pipeline',
     experiment_id: 'test-experiment-2',
@@ -114,7 +114,7 @@ const mockJobs = [
       pipeline_version_id: 'test-version-2',
     },
   }),
-  buildMockJobKF({
+  buildMockRecurringRunKF({
     display_name: 'another-pipeline',
     recurring_run_id: 'another-test-pipeline',
     experiment_id: 'test-experiment-1',
@@ -735,12 +735,12 @@ describe('Pipeline runs', () => {
   describe('Schedules', () => {
     describe('empty state', () => {
       beforeEach(() => {
-        pipelineRunJobTable.mockGetJobs([], projectName);
+        pipelineRecurringRunTable.mockGetRecurringRuns([], projectName);
         pipelineRunsGlobal.visit(projectName, pipelineId, pipelineVersionId, 'scheduled');
       });
 
       it('shows empty state', () => {
-        pipelineRunJobTable.findEmptyState().should('exist');
+        pipelineRecurringRunTable.findEmptyState().should('exist');
       });
 
       it('navigate to create run page', () => {
@@ -750,15 +750,15 @@ describe('Pipeline runs', () => {
     });
 
     it('shows empty state', () => {
-      pipelineRunJobTable.mockGetJobs([], projectName);
+      pipelineRecurringRunTable.mockGetRecurringRuns([], projectName);
       pipelineRunsGlobal.visit(projectName, pipelineId, pipelineVersionId, 'scheduled');
-      pipelineRunJobTable.findEmptyState().should('exist');
+      pipelineRecurringRunTable.findEmptyState().should('exist');
     });
 
     describe('table pagination', () => {
       it('Scheduled run table pagination', () => {
-        const mockJobRuns = Array.from({ length: 15 }, (_, i) =>
-          buildMockJobKF({
+        const mockRuns = Array.from({ length: 15 }, (_, i) =>
+          buildMockRecurringRunKF({
             display_name: `another-pipeline-${i}`,
             recurring_run_id: `another-test-pipeline-${i}`,
             experiment_id: `test-experiment-${i}`,
@@ -775,7 +775,7 @@ describe('Pipeline runs', () => {
             path: { namespace: projectName, serviceName: 'dspa' },
           },
           {
-            recurringRuns: mockJobRuns.slice(0, 10),
+            recurringRuns: mockRuns.slice(0, 10),
             total_size: 15,
             next_page_token: 'page-2-token',
           },
@@ -791,8 +791,8 @@ describe('Pipeline runs', () => {
           });
         });
 
-        pipelineRunJobTable.getRowByName('another-pipeline-0').find().should('exist');
-        pipelineRunJobTable.findRows().should('have.length', 10);
+        pipelineRecurringRunTable.getRowByName('another-pipeline-0').find().should('exist');
+        pipelineRecurringRunTable.findRows().should('have.length', 10);
 
         const pagination = tablePagination.top;
 
@@ -805,7 +805,7 @@ describe('Pipeline runs', () => {
             path: { namespace: projectName, serviceName: 'dspa' },
           },
           {
-            recurringRuns: mockJobRuns.slice(10, 15),
+            recurringRuns: mockRuns.slice(10, 15),
             total_size: 15,
           },
         ).as('refreshScheduledRuns');
@@ -822,8 +822,8 @@ describe('Pipeline runs', () => {
         });
 
         pagination.findInput().should('have.value', '2');
-        pipelineRunJobTable.getRowByName('another-pipeline-14').find().should('exist');
-        pipelineRunJobTable.findRows().should('have.length', 5);
+        pipelineRecurringRunTable.getRowByName('another-pipeline-14').find().should('exist');
+        pipelineRecurringRunTable.findRows().should('have.length', 5);
 
         //test first button
         pagination.findLastButton().should('be.disabled');
@@ -834,15 +834,15 @@ describe('Pipeline runs', () => {
             path: { namespace: projectName, serviceName: 'dspa' },
           },
           {
-            recurringRuns: mockJobRuns.slice(0, 10),
+            recurringRuns: mockRuns.slice(0, 10),
             total_size: 15,
             next_page_token: 'new-page-token',
           },
         );
         pagination.findFirstButton().click();
         pagination.findInput().should('have.value', '1');
-        pipelineRunJobTable.getRowByName('another-pipeline-0').find().should('exist');
-        pipelineRunJobTable.findRows().should('have.length', 10);
+        pipelineRecurringRunTable.getRowByName('another-pipeline-0').find().should('exist');
+        pipelineRecurringRunTable.findRows().should('have.length', 10);
 
         //test last button
         pagination.findFirstButton().should('be.disabled');
@@ -853,17 +853,17 @@ describe('Pipeline runs', () => {
             path: { namespace: projectName, serviceName: 'dspa' },
           },
           {
-            recurringRuns: mockJobRuns.slice(10, 15),
+            recurringRuns: mockRuns.slice(10, 15),
             total_size: 15,
           },
-        ).as('refreshPipelineRunJobs');
+        ).as('refreshPipelineRecurringRuns');
 
         pagination.findLastButton().click();
         pagination.findInput().should('have.value', Math.ceil(15 / 10));
-        pipelineRunJobTable.getRowByName('another-pipeline-14').find().should('exist');
-        pipelineRunJobTable.findRows().should('have.length', 5);
+        pipelineRecurringRunTable.getRowByName('another-pipeline-14').find().should('exist');
+        pipelineRecurringRunTable.findRows().should('have.length', 5);
 
-        cy.wait('@refreshPipelineRunJobs').then((interception) => {
+        cy.wait('@refreshPipelineRecurringRuns').then((interception) => {
           expect(interception.request.query).to.eql({
             filter:
               '{"predicates":[{"key":"pipeline_version_id","operation":"EQUALS","string_value":"test-version"}]}',
@@ -882,14 +882,14 @@ describe('Pipeline runs', () => {
             path: { namespace: projectName, serviceName: 'dspa' },
           },
           {
-            recurringRuns: mockJobRuns.slice(0, 10),
+            recurringRuns: mockRuns.slice(0, 10),
             total_size: 15,
           },
         );
         pagination.findPreviousButton().click();
         pagination.findInput().should('have.value', '1');
-        pipelineRunJobTable.getRowByName('another-pipeline-0').find().should('exist');
-        pipelineRunJobTable.findRows().should('have.length', 10);
+        pipelineRecurringRunTable.getRowByName('another-pipeline-0').find().should('exist');
+        pipelineRecurringRunTable.findRows().should('have.length', 10);
 
         // 20 per page
         cy.interceptOdh(
@@ -898,16 +898,16 @@ describe('Pipeline runs', () => {
             path: { namespace: projectName, serviceName: 'dspa' },
           },
           {
-            recurringRuns: mockJobRuns.slice(0, 15),
+            recurringRuns: mockRuns.slice(0, 15),
             total_size: 15,
           },
         );
 
         pagination.selectToggleOption('20 per page');
 
-        pipelineRunJobTable.getRowByName('another-pipeline-0').find().should('exist');
-        pipelineRunJobTable.getRowByName('another-pipeline-14').find().should('exist');
-        pipelineRunJobTable.findRows().should('have.length', 15);
+        pipelineRecurringRunTable.getRowByName('another-pipeline-0').find().should('exist');
+        pipelineRecurringRunTable.getRowByName('another-pipeline-14').find().should('exist');
+        pipelineRecurringRunTable.findRows().should('have.length', 15);
         pagination.findLastButton().should('be.disabled');
         pagination.findNextButton().should('be.disabled');
         pagination.findPreviousButton().should('be.disabled');
@@ -918,24 +918,26 @@ describe('Pipeline runs', () => {
 
     describe('with data', () => {
       beforeEach(() => {
-        pipelineRunJobTable.mockGetJobs(mockJobs, projectName);
+        pipelineRecurringRunTable.mockGetRecurringRuns(mockRecurringRuns, projectName);
         pipelineRunsGlobal.visit(projectName, pipelineId, pipelineVersionId, 'scheduled');
       });
 
       it('renders the page with table rows', () => {
-        pipelineRunJobTable.find().should('exist');
-        pipelineRunJobTable.getRowByName('test-pipeline').find().should('exist');
-        pipelineRunJobTable.getRowByName('other-pipeline').find().should('exist');
-        pipelineRunJobTable.getRowByName('another-pipeline').find().should('exist');
+        pipelineRecurringRunTable.find().should('exist');
+        pipelineRecurringRunTable.getRowByName('test-pipeline').find().should('exist');
+        pipelineRecurringRunTable.getRowByName('other-pipeline').find().should('exist');
+        pipelineRecurringRunTable.getRowByName('another-pipeline').find().should('exist');
       });
 
-      it('can disable a job', () => {
-        pipelineRunJobTable.mockDisableJob(mockJobs[0], projectName).as('disableJob');
-        pipelineRunJobTable
-          .getRowByName(mockJobs[0].display_name)
+      it('can disable a recurring run', () => {
+        pipelineRecurringRunTable
+          .mockDisableRecurringRun(mockRecurringRuns[0], projectName)
+          .as('disableRecurringRun');
+        pipelineRecurringRunTable
+          .getRowByName(mockRecurringRuns[0].display_name)
           .findStatusSwitchByRowName()
           .click();
-        cy.wait('@disableJob');
+        cy.wait('@disableRecurringRun');
       });
 
       describe('Navigation', () => {
@@ -944,43 +946,45 @@ describe('Pipeline runs', () => {
           verifyRelativeURL(`/pipelines/${projectName}/pipelineRun/create?runType=scheduled`);
         });
         it('navigate to clone scheduled run page', () => {
-          pipelineRunJobTable
-            .getRowByName(mockJobs[0].display_name)
+          pipelineRecurringRunTable
+            .getRowByName(mockRecurringRuns[0].display_name)
             .findKebabAction('Duplicate')
             .click();
           verifyRelativeURL(
-            `/pipelines/${projectName}/pipelineRun/cloneJob/${mockJobs[0].recurring_run_id}?runType=scheduled`,
+            `/pipelines/${projectName}/pipelineRun/cloneRecurringRun/${mockRecurringRuns[0].recurring_run_id}?runType=scheduled`,
           );
         });
         it('navigate to scheduled run details page', () => {
-          pipelineRunJobTable
-            .getRowByName(mockJobs[0].display_name)
-            .findColumnName(mockJobs[0].display_name)
+          pipelineRecurringRunTable
+            .getRowByName(mockRecurringRuns[0].display_name)
+            .findColumnName(mockRecurringRuns[0].display_name)
             .click();
           verifyRelativeURL(
-            `/pipelines/${projectName}/pipelineRunJob/view/${mockJobs[0].recurring_run_id}`,
+            `/pipelines/${projectName}/pipelineRecurringRun/view/${mockRecurringRuns[0].recurring_run_id}`,
           );
         });
       });
 
       describe('Table filter', () => {
         it('filter by name', () => {
-          // Verify initial job rows exist
-          pipelineRunJobTable.findRows().should('have.length', 3);
+          // Verify initial recurring run rows exist
+          pipelineRecurringRunTable.findRows().should('have.length', 3);
 
           // Select the "Schedule" filter, enter a value to filter by
-          pipelineRunJobTable.selectFilterByName('Schedule');
-          pipelineRunJobTable.findFilterTextField().type('test-pipeline');
+          pipelineRecurringRunTable.selectFilterByName('Schedule');
+          pipelineRecurringRunTable.findFilterTextField().type('test-pipeline');
 
-          // Mock jobs (filtered by typed job name)
-          pipelineRunJobTable.mockGetJobs(
-            mockJobs.filter((mockJob) => mockJob.display_name.includes('test-pipeline')),
+          // Mock recurring runs (filtered by typed recurring run name)
+          pipelineRecurringRunTable.mockGetRecurringRuns(
+            mockRecurringRuns.filter((mockRecurringRun) =>
+              mockRecurringRun.display_name.includes('test-pipeline'),
+            ),
             projectName,
           );
 
-          // Verify only rows with the typed job name exist
-          pipelineRunJobTable.findRows().should('have.length', 1);
-          pipelineRunJobTable.getRowByName('test-pipeline').find().should('exist');
+          // Verify only rows with the typed recurring run name exist
+          pipelineRecurringRunTable.findRows().should('have.length', 1);
+          pipelineRecurringRunTable.getRowByName('test-pipeline').find().should('exist');
         });
 
         it('Sort by Name', () => {

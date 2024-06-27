@@ -1,20 +1,20 @@
 /* eslint-disable camelcase */
 import {
   InputDefinitionParameterType,
-  PipelineRunJobKFv2,
+  PipelineRecurringRunKFv2,
   PipelineRunKFv2,
 } from '~/concepts/pipelines/kfTypes';
 import {
   buildMockRunKF,
   buildMockPipelineV2,
   buildMockPipelineVersionV2,
-  buildMockJobKF,
+  buildMockRecurringRunKF,
   buildMockExperimentKF,
 } from '~/__mocks__';
 import {
   createRunPage,
   cloneRunPage,
-  pipelineRunJobTable,
+  pipelineRecurringRunTable,
   pipelineRunsGlobal,
   activeRunsTable,
   createSchedulePage,
@@ -48,7 +48,7 @@ const initialMockRuns = [
   }),
 ];
 const initialMockRecurringRuns = [
-  buildMockJobKF({
+  buildMockRecurringRunKF({
     pipeline_version_reference: pipelineVersionRef,
     experiment_id: 'experiment-1',
   }),
@@ -66,7 +66,7 @@ describe('Pipeline create runs', () => {
 
   it('renders the page with scheduled and active runs table data', () => {
     pipelineRunsGlobal.findSchedulesTab().click();
-    pipelineRunJobTable.getRowByName('Test job').find().should('exist');
+    pipelineRecurringRunTable.getRowByName('Test recurring run').find().should('exist');
 
     pipelineRunsGlobal.findActiveRunsTab().click();
     activeRunsTable.getRowByName('Test run').find().should('exist');
@@ -498,10 +498,10 @@ describe('Pipeline create runs', () => {
     });
 
     it('creates a schedule', () => {
-      const createRecurringRunParams: Partial<PipelineRunJobKFv2> = {
-        display_name: 'New job',
-        description: 'New job description',
-        recurring_run_id: 'new-job-id',
+      const createRecurringRunParams: Partial<PipelineRecurringRunKFv2> = {
+        display_name: 'New recurring run',
+        description: 'New recurring run description',
+        recurring_run_id: 'new-recurring-run-id',
         runtime_config: {
           parameters: {
             min_max_scaler: false,
@@ -526,8 +526,8 @@ describe('Pipeline create runs', () => {
       createSchedulePage.find();
 
       // Fill out the form with a schedule and submit
-      createSchedulePage.fillName('New job');
-      createSchedulePage.fillDescription('New job description');
+      createSchedulePage.fillName('New recurring run');
+      createSchedulePage.fillDescription('New recurring run description');
       createSchedulePage.findExperimentSelect().should('not.be.disabled').click();
       createSchedulePage.selectExperimentByName('Test experiment 1');
       createSchedulePage.findPipelineSelect().should('not.be.disabled').click();
@@ -546,8 +546,8 @@ describe('Pipeline create runs', () => {
 
       cy.wait('@createSchedule').then((interception) => {
         expect(interception.request.body).to.eql({
-          display_name: 'New job',
-          description: 'New job description',
+          display_name: 'New recurring run',
+          description: 'New recurring run description',
           pipeline_version_reference: {
             pipeline_id: 'test-pipeline',
             pipeline_version_id: 'test-pipeline-version',
@@ -566,16 +566,16 @@ describe('Pipeline create runs', () => {
 
       // Should be redirected to the schedule details page
       verifyRelativeURL(
-        `/pipelines/${projectName}/pipelineRunJob/view/${createRecurringRunParams.recurring_run_id}`,
+        `/pipelines/${projectName}/pipelineRecurringRun/view/${createRecurringRunParams.recurring_run_id}`,
       );
     });
 
     it('duplicates a schedule', () => {
       const [mockRecurringRun] = initialMockRecurringRuns;
       const mockExperiment = mockExperiments[0];
-      const mockDuplicateRecurringRun = buildMockJobKF({
-        display_name: 'Duplicate of Test job',
-        recurring_run_id: 'duplicate-job-id',
+      const mockDuplicateRecurringRun = buildMockRecurringRunKF({
+        display_name: 'Duplicate of Test recurring run',
+        recurring_run_id: 'duplicate-recurring-run-id',
         experiment_id: mockExperiment.experiment_id,
       });
 
@@ -593,12 +593,12 @@ describe('Pipeline create runs', () => {
       cloneSchedulePage.mockGetExperiment(projectName, mockExperiment);
 
       // Navigate to clone run page for a given schedule
-      pipelineRunJobTable
+      pipelineRecurringRunTable
         .getRowByName(mockRecurringRun.display_name)
         .findKebabAction('Duplicate')
         .click();
       verifyRelativeURL(
-        `/pipelines/${projectName}/pipelineRun/cloneJob/${mockRecurringRun.recurring_run_id}?runType=scheduled`,
+        `/pipelines/${projectName}/pipelineRun/cloneRecurringRun/${mockRecurringRun.recurring_run_id}?runType=scheduled`,
       );
 
       // Verify pre-populated values & submit
@@ -618,7 +618,7 @@ describe('Pipeline create runs', () => {
 
       cy.wait('@duplicateSchedule').then((interception) => {
         expect(interception.request.body).to.eql({
-          display_name: 'Duplicate of Test job',
+          display_name: 'Duplicate of Test recurring run',
           description: '',
           pipeline_version_reference: {
             pipeline_id: 'test-pipeline',
@@ -644,7 +644,7 @@ describe('Pipeline create runs', () => {
 
       // Should be redirected to the schedule details page
       verifyRelativeURL(
-        `/pipelines/${projectName}/pipelineRunJob/view/${mockDuplicateRecurringRun.recurring_run_id}`,
+        `/pipelines/${projectName}/pipelineRecurringRun/view/${mockDuplicateRecurringRun.recurring_run_id}`,
       );
     });
 
