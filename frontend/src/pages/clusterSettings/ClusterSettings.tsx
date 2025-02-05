@@ -29,6 +29,7 @@ import {
   MIN_CULLER_TIMEOUT,
   DEFAULT_TOLERATION_VALUE,
 } from './const';
+import FineTuningSettings from './FineTuningSettings';
 
 const ClusterSettings: React.FC = () => {
   const defaultSingleModelDeploymentMode = useDefaultDeploymentMode();
@@ -42,6 +43,7 @@ const ClusterSettings: React.FC = () => {
   const [cullerTimeout, setCullerTimeout] = React.useState(DEFAULT_CULLER_TIMEOUT);
   const { dashboardConfig } = useAppContext();
   const modelServingEnabled = useIsAreaAvailable(SupportedArea.MODEL_SERVING).status;
+  const isAreaFineTuningEnabled = useIsAreaAvailable(SupportedArea.FINE_TUNING).status;
   const isJupyterEnabled = useCheckJupyterEnabled();
   const [notebookTolerationSettings, setNotebookTolerationSettings] =
     React.useState<NotebookTolerationFormSettings>({
@@ -53,6 +55,7 @@ const ClusterSettings: React.FC = () => {
   const [defaultDeploymentMode, setDefaultDeploymentMode] = React.useState<DeploymentMode>(
     defaultSingleModelDeploymentMode,
   );
+  const [fineTuningEnabled, setFineTuningEnabled] = React.useState<boolean>(false);
   const dispatch = useAppDispatch();
 
   React.useEffect(() => {
@@ -79,6 +82,7 @@ const ClusterSettings: React.FC = () => {
           key: notebookTolerationSettings.key,
         },
         modelServingPlatformEnabled: modelServingEnabledPlatforms,
+        fineTuningEnabled,
       }),
     [
       pvcSize,
@@ -87,6 +91,7 @@ const ClusterSettings: React.FC = () => {
       clusterSettings,
       notebookTolerationSettings,
       modelServingEnabledPlatforms,
+      fineTuningEnabled,
     ],
   );
 
@@ -100,6 +105,7 @@ const ClusterSettings: React.FC = () => {
         key: notebookTolerationSettings.key,
       },
       modelServingPlatformEnabled: modelServingEnabledPlatforms,
+      fineTuningEnabled,
     };
     if (!_.isEqual(clusterSettings, newClusterSettings)) {
       if (
@@ -193,6 +199,15 @@ const ClusterSettings: React.FC = () => {
               initialValue={clusterSettings.notebookTolerationSettings}
               tolerationSettings={notebookTolerationSettings}
               setTolerationSettings={setNotebookTolerationSettings}
+            />
+          </StackItem>
+        )}
+        {isAreaFineTuningEnabled && (
+          <StackItem>
+            <FineTuningSettings
+              initialValue={clusterSettings.fineTuningEnabled}
+              enabled={fineTuningEnabled}
+              setEnabled={setFineTuningEnabled}
             />
           </StackItem>
         )}

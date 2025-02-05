@@ -22,6 +22,7 @@ const DEFAULT_CLUSTER_SETTINGS = {
     kServe: true,
     modelMesh: false,
   },
+  fineTuningEnabled: false,
 } satisfies ClusterSettings;
 
 export const updateClusterSettings = async (

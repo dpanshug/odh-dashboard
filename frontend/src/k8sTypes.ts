@@ -1204,6 +1204,7 @@ export type DashboardCommonConfig = {
   disableConnectionTypes: boolean;
   disableStorageClasses: boolean;
   disableNIMModelServing: boolean;
+  disableFineTuning: boolean;
 };
 
 export type DashboardConfigKind = K8sResourceCommon & {

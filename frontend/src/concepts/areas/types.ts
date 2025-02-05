@@ -40,6 +40,7 @@ export enum SupportedArea {
   HARDWARE_PROFILES = 'hardware-profiles',
   CONNECTION_TYPES = 'connections-types',
   STORAGE_CLASSES = 'storage-classes',
+  FINE_TUNING = 'fine-tuning',
 
   /* DS Projects specific areas */
   DS_PROJECTS_PERMISSIONS = 'ds-projects-permission',

@@ -81,6 +81,8 @@ spec:
                       type: boolean
                     disableNIMModelServing:
                       type: boolean
+                    disableFineTuning:
+                      type: boolean
                 groupsConfig:
                   type: object
                   required:

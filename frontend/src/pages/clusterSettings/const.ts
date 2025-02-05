@@ -21,6 +21,7 @@ export const DEFAULT_CONFIG: ClusterSettingsType = {
     kServe: true,
     modelMesh: false,
   },
+  fineTuningEnabled: false,
 };
 export const DEFAULT_TOLERATION_VALUE = 'NotebooksOnly';
 export const TOLERATION_FORMAT = /^([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]$/;

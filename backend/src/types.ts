@@ -45,6 +45,7 @@ export type DashboardConfig = K8sResourceCommon & {
       disableConnectionTypes: boolean;
       disableStorageClasses: boolean;
       disableNIMModelServing: boolean;
+      disableFineTuning: boolean;
     };
     /** @deprecated -- replacing this with Platform Auth resource -- remove when this is no longer in the CRD */
     groupsConfig?: {
@@ -117,6 +118,7 @@ export type ClusterSettings = {
     kServe: boolean;
     modelMesh: boolean;
   };
+  fineTuningEnabled: boolean;
 };
 
 // Add a minimal QuickStart type here as there is no way to get types without pulling in frontend (React) modules

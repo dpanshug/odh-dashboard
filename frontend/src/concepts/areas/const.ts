@@ -33,6 +33,7 @@ export const allFeatureFlags: string[] = Object.keys({
   disableConnectionTypes: false,
   disableStorageClasses: false,
   disableNIMModelServing: true,
+  disableFineTuning: true,
 } satisfies DashboardCommonConfig);
 
 export const SupportedAreasStateMap: SupportedAreasState = {
@@ -137,5 +138,9 @@ export const SupportedAreasStateMap: SupportedAreasState = {
   [SupportedArea.NIM_MODEL]: {
     featureFlags: ['disableNIMModelServing'],
     reliantAreas: [SupportedArea.K_SERVE],
+  },
+  [SupportedArea.FINE_TUNING]: {
+    featureFlags: ['disableFineTuning'],
+    reliantAreas: [SupportedArea.DS_PIPELINES],
   },
 };

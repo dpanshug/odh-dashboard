@@ -106,6 +106,7 @@ export type ClusterSettingsType = {
   cullerTimeout: number;
   notebookTolerationSettings: TolerationSettings | null;
   modelServingPlatformEnabled: ModelServingPlatformEnabled;
+  fineTuningEnabled: boolean;
 };
 
 export type ModelServingPlatformEnabled = {

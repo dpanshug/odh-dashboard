@@ -40,6 +40,7 @@ The following are a list of features that are supported, along with there defaul
 | disableServingRuntimeParams  | false   | Disables Serving Runtime params from the dashboard.                                                  |
 | disableStorageClasses        | false   | Disables storage classes settings nav item from the dashboard.                                       |
 | disableNIMModelServing       | true    | Disables components of NIM Model UI from the dashboard.                                              |
+| disableFineTuning            | true    | Disables Fine tuning from the dashboard.                                                             |
 
 ## Defaults
 
@@ -71,6 +72,7 @@ spec:
     disableDistributedWorkloads: false
     disableStorageClasses: false
     disableNIMModelServing: true
+    disableFineTuning: true
 ```
 
 ## Additional fields

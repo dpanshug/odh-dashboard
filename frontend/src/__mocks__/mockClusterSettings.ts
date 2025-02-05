@@ -13,10 +13,12 @@ export const mockClusterSettings = ({
     kServe: true,
     modelMesh: true,
   },
+  fineTuningEnabled = false,
 }: Partial<ClusterSettingsType>): ClusterSettingsType => ({
   userTrackingEnabled,
   cullerTimeout,
   pvcSize,
   notebookTolerationSettings,
   modelServingPlatformEnabled,
+  fineTuningEnabled,
 });
