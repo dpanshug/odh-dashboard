@@ -1,5 +1,6 @@
 import { SortableData } from '#~/components/table';
 import { LMEvalKind } from '#~/k8sTypes';
+import { getLMEvalState } from './utils';
 
 export const columns: SortableData<LMEvalKind>[] = [
   {
@@ -30,9 +31,9 @@ export const columns: SortableData<LMEvalKind>[] = [
     field: 'status',
     label: 'Status',
     sortable: (a: LMEvalKind, b: LMEvalKind): number => {
-      const aStatus = a.status?.state;
-      const bStatus = b.status?.state;
-      return aStatus?.localeCompare(bStatus ?? '') ?? 0;
+      const aState = getLMEvalState(a.status);
+      const bState = getLMEvalState(b.status);
+      return aState.localeCompare(bState);
     },
   },
   {
