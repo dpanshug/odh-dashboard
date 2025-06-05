@@ -18,21 +18,21 @@ export const columns: SortableData<LMEvalKind>[] = [
     },
   },
   {
-    field: 'date',
-    label: 'Date',
+    field: 'evaluated',
+    label: 'Evaluated',
     sortable: (a: LMEvalKind, b: LMEvalKind): number => {
-      const first = a.status?.completeTime;
-      const second = b.status?.completeTime;
+      const first = a.metadata.creationTimestamp;
+      const second = b.metadata.creationTimestamp;
       return new Date(first ?? 0).getTime() - new Date(second ?? 0).getTime();
     },
   },
   {
-    field: 'time',
-    label: 'Time',
+    field: 'status',
+    label: 'Status',
     sortable: (a: LMEvalKind, b: LMEvalKind): number => {
-      const first = a.status?.completeTime;
-      const second = b.status?.completeTime;
-      return new Date(first ?? 0).getTime() - new Date(second ?? 0).getTime();
+      const aStatus = a.status?.state;
+      const bStatus = b.status?.state;
+      return aStatus?.localeCompare(bStatus ?? '') ?? 0;
     },
   },
   {
