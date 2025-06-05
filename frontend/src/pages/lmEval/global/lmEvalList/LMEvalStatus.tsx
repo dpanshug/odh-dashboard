@@ -57,54 +57,44 @@ const LMEvalStatus: React.FC<LMEvalStatusProps> = ({ status, iconSize = 'sm' }) 
   const statusMessage = getLMEvalStatusMessage(status);
 
   const statusIcon = () => {
+    if (currentState === LMEvalState.PENDING || currentState === LMEvalState.RUNNING) {
+      return (
+        <Icon isInline iconSize={iconSize}>
+          <InProgressIcon />
+        </Icon>
+      );
+    }
+
+    let iconStatus: 'success' | 'danger' | 'warning';
+    let IconComponent: React.ComponentType;
+
     switch (currentState) {
       case LMEvalState.COMPLETE:
-        return (
-          <Button
-            variant="link"
-            isInline
-            data-testid="status-tooltip"
-            icon={
-              <Icon status="success" isInline iconSize={iconSize}>
-                <CheckCircleIcon />
-              </Icon>
-            }
-          />
-        );
+        iconStatus = 'success';
+        IconComponent = CheckCircleIcon;
+        break;
       case LMEvalState.FAILED:
-        return (
-          <Button
-            variant="link"
-            isInline
-            data-testid="status-tooltip"
-            icon={
-              <Icon status="danger" isInline iconSize={iconSize}>
-                <ExclamationCircleIcon />
-              </Icon>
-            }
-          />
-        );
-      case LMEvalState.PENDING:
-      case LMEvalState.RUNNING:
-        return (
-          <Icon isInline iconSize={iconSize}>
-            <InProgressIcon />
-          </Icon>
-        );
+        iconStatus = 'danger';
+        IconComponent = ExclamationCircleIcon;
+        break;
       default:
-        return (
-          <Button
-            variant="link"
-            isInline
-            data-testid="status-tooltip"
-            icon={
-              <Icon status="warning" isInline iconSize={iconSize}>
-                <OutlinedQuestionCircleIcon />
-              </Icon>
-            }
-          />
-        );
+        iconStatus = 'warning';
+        IconComponent = OutlinedQuestionCircleIcon;
+        break;
     }
+
+    return (
+      <Button
+        variant="link"
+        isInline
+        data-testid="status-tooltip"
+        icon={
+          <Icon status={iconStatus} isInline iconSize={iconSize}>
+            <IconComponent />
+          </Icon>
+        }
+      />
+    );
   };
 
   const headerContent = () => {
