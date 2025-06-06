@@ -3,6 +3,7 @@ import { ActionsColumn, Td, Tr } from '@patternfly/react-table';
 import { Timestamp } from '@patternfly/react-core';
 import { LMEvalKind } from '#~/k8sTypes';
 import { downloadString } from '#~/utilities/string';
+import { getDisplayNameFromK8sResource } from '#~/concepts/k8s/utils.ts';
 import LMEvalStatus from './LMEvalStatus';
 
 type LMEvalTableRowType = {
@@ -17,7 +18,7 @@ const LMEvalTableRow: React.FC<LMEvalTableRowType> = ({ lmEval }) => {
 
   return (
     <Tr>
-      <Td dataLabel="Evaluation">{lmEval.metadata.name}</Td>
+      <Td dataLabel="Evaluation">{getDisplayNameFromK8sResource(lmEval)}</Td>
       <Td dataLabel="Model">
         {lmEval.spec.modelArgs?.find((arg) => arg.name === 'model')?.value || '-'}
       </Td>
