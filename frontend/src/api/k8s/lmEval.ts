@@ -2,6 +2,8 @@ import {
   k8sGetResource,
   k8sListResource,
   k8sCreateResource,
+  k8sDeleteResource,
+  K8sStatus,
 } from '@openshift/dynamic-plugin-sdk-utils';
 import { LmEvalFormData } from '#~/pages/lmEval/types';
 import { K8sAPIOptions, LMEvalKind } from '#~/k8sTypes';
@@ -26,7 +28,10 @@ const assembleModelEvaluation = (
   apiVersion: kindApiVersion(LMEvalModel),
   kind: LMEvalModel.kind,
   metadata: {
-    name: data.evaluationName || `eval-${translateDisplayNameForK8s(data.model.name)}`,
+    annotations: {
+      'openshift.io/display-name': data.evaluationName.trim(),
+    },
+    name: data.k8sName || translateDisplayNameForK8s(data.evaluationName),
     namespace,
   },
   spec: {
@@ -64,6 +69,21 @@ export const createModelEvaluation = (
     ),
   );
 };
+
+export const deleteModelEvaluation = (
+  name: string,
+  namespace: string,
+  opts?: K8sAPIOptions,
+): Promise<K8sStatus> =>
+  k8sDeleteResource<LMEvalKind, K8sStatus>(
+    applyK8sAPIOptions(
+      {
+        model: LMEvalModel,
+        queryOptions: { name, ns: namespace },
+      },
+      opts,
+    ),
+  );
 
 export const getModelEvaluationResult = (name: string, namespace: string): Promise<LMEvalKind> =>
   k8sGetResource<LMEvalKind>({

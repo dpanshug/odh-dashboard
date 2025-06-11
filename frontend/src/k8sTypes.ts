@@ -51,13 +51,15 @@ export type DisplayNameAnnotations = Partial<{
   'openshift.io/display-name': string; // the name provided by the user
 }>;
 
+export type AccessModeSettings = Partial<Record<AccessMode, boolean>>;
+
 export type StorageClassConfig = {
   displayName: string;
   isEnabled: boolean;
   isDefault: boolean;
   lastModified: string;
   description?: string;
-  accessModeSettings: Partial<Record<AccessMode, boolean>>;
+  accessModeSettings: AccessModeSettings;
 };
 
 export enum MetadataAnnotation {
@@ -113,6 +115,8 @@ export type NotebookAnnotations = Partial<{
   'opendatahub.io/image-display-name': string; // the display name of the image
   'notebooks.opendatahub.io/last-image-version-git-commit-selection': string; // the build commit of the last image they selected
   'opendatahub.io/hardware-profile-namespace': string | null; // the namespace of the hardware profile used
+  'opendatahub.io/workbench-image-namespace': string | null; // namespace of the
+  'opendatahub.io/accelerator-profile-namespace': string | undefined; // the namespace of the accelerator profile used
 }>;
 
 export type DashboardLabels = {
@@ -142,6 +146,7 @@ export type ServingRuntimeAnnotations = Partial<{
   'opendatahub.io/apiProtocol': string;
   'opendatahub.io/serving-runtime-scope': string;
   'opendatahub.io/hardware-profile-namespace': string | undefined;
+  'opendatahub.io/accelerator-profile-namespace': string | undefined;
   'enable-route': string;
   'enable-auth': string;
   'modelmesh-enabled': 'true' | 'false';
@@ -308,7 +313,7 @@ export type PersistentVolumeClaimKind = K8sResourceCommon & {
     namespace: string;
   };
   spec: {
-    accessModes: string[];
+    accessModes: AccessMode[];
     resources: {
       requests: {
         storage: string;
@@ -1272,6 +1277,9 @@ export type AcceleratorProfileKind = K8sResourceCommon & {
 
 export type LMEvalKind = K8sResourceCommon & {
   metadata: {
+    annotations?: Partial<{
+      'opendatahub.io/display-name': string;
+    }>;
     name: string;
     namespace: string;
   };
