@@ -175,6 +175,7 @@ export const SupportedAreasStateMap: SupportedAreasState = {
   },
   [SupportedArea.LM_EVAL]: {
     featureFlags: ['disableLMEval'],
+    requiredComponents: [StackComponent.TRUSTY_AI],
     reliantAreas: [SupportedArea.MODEL_REGISTRY, SupportedArea.MODEL_SERVING],
   },
 };

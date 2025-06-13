@@ -127,7 +127,7 @@ const LMEvalForm: React.FC = () => {
       breadcrumb={
         <Breadcrumb>
           <BreadcrumbItem render={() => <Link to="/modelEvaluations">Model evaluations</Link>} />
-          <BreadcrumbItem isActive>Evaluate model</BreadcrumbItem>
+          <BreadcrumbItem isActive>Evaluate</BreadcrumbItem>
         </Breadcrumb>
       }
       empty={false}

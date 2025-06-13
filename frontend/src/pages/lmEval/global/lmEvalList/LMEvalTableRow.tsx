@@ -30,7 +30,7 @@ const LMEvalTableRow: React.FC<LMEvalTableRowType> = ({ lmEval, onDeleteLMEval }
       <Td dataLabel="Model">
         {lmEval.spec.modelArgs?.find((arg) => arg.name === 'model')?.value || '-'}
       </Td>
-      <Td dataLabel="Evaluated">
+      <Td dataLabel="Evaluation started">
         {lmEval.metadata.creationTimestamp ? (
           <Timestamp date={new Date(lmEval.metadata.creationTimestamp)} />
         ) : (

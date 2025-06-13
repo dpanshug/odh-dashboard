@@ -19,8 +19,8 @@ export const columns: SortableData<LMEvalKind>[] = [
     },
   },
   {
-    field: 'evaluated',
-    label: 'Evaluated',
+    field: 'evaluation-started',
+    label: 'Evaluation started',
     sortable: (a: LMEvalKind, b: LMEvalKind): number => {
       const first = a.metadata.creationTimestamp;
       const second = b.metadata.creationTimestamp;

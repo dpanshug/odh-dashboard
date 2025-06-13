@@ -87,6 +87,7 @@ const LmEvalModelArgumentSection: React.FC<LmEvalModelArgumentSectionProps> = ({
     >
       <TextInput
         aria-label="Tokenizer text input"
+        placeholder="Add tokenizer"
         value={modelArgument.tokenizer}
         onChange={(_event, v) => setModelArgument({ ...modelArgument, tokenizer: v })}
       />

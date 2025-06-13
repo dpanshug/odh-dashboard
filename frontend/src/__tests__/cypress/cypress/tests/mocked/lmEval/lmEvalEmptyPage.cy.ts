@@ -5,13 +5,17 @@ import { LMEvalModel } from '#~/api/models';
 import { verifyRelativeURL } from '#~/__tests__/cypress/cypress/utils/url';
 import { lmEvalPage } from '#~/__tests__/cypress/cypress/pages/lmEval/lmEvalPage';
 import { mockDashboardConfig } from '#~/__mocks__/mockDashboardConfig.ts';
+import { mockDscStatus } from '#~/__mocks__/mockDscStatus.ts';
 
 describe('LM Evaluation Home Page', () => {
-  beforeEach(() => {
-    initIntercepts();
+  it('model evaluation tab is invisible when trustyai is not installed', () => {
+    initIntercepts({ isTrustyAIInstalled: false });
+    lmEvalPage.visit('test-project', false);
+    lmEvalPage.findPageTitle().should('not.exist');
   });
 
   it('should show empty state when no evaluations exist', () => {
+    initIntercepts({});
     lmEvalPage.visit('test-project');
 
     lmEvalPage.findPageTitle().should('have.text', 'Model evaluations');
@@ -24,6 +28,7 @@ describe('LM Evaluation Home Page', () => {
   });
 
   it('should show empty state when no projects exist', () => {
+    initIntercepts({});
     cy.interceptK8sList(ProjectModel, mockK8sResourceList([]));
     lmEvalPage.visit();
 
@@ -37,8 +42,9 @@ describe('LM Evaluation Home Page', () => {
   });
 
   it('should verify model evaluation is invisible when feature flag is disabled', () => {
+    initIntercepts({});
     // Mock feature flag disabled
-    initIntercepts(true);
+    initIntercepts({ disableLMEval: true });
 
     // Visit the LM Evaluation page
     lmEvalPage.visit(undefined, false);
@@ -48,6 +54,7 @@ describe('LM Evaluation Home Page', () => {
   });
 
   it('should verify URL for model evaluation form', () => {
+    initIntercepts({});
     // Mock project and empty evaluations
     cy.interceptK8sList(ProjectModel, mockK8sResourceList([mockProjectK8sResource({})]));
     cy.interceptK8sList(LMEvalModel, mockK8sResourceList([]));
@@ -66,7 +73,23 @@ describe('LM Evaluation Home Page', () => {
   });
 });
 
-const initIntercepts = (disableLMEval = false): void => {
+type InitInterceptsProps = {
+  disableLMEval?: boolean;
+  isTrustyAIInstalled?: boolean;
+};
+
+const initIntercepts = ({
+  disableLMEval = false,
+  isTrustyAIInstalled = true,
+}: InitInterceptsProps): void => {
+  cy.interceptOdh(
+    'GET /api/dsc/status',
+    mockDscStatus({
+      installedComponents: {
+        trustyai: isTrustyAIInstalled,
+      },
+    }),
+  );
   // Mock dashboard config
   cy.interceptOdh(
     'GET /api/config',
