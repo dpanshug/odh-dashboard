@@ -1,7 +1,6 @@
 import {
   t_global_text_color_regular as RegularColor,
   t_global_text_color_status_danger_default as DangerColor,
-  t_global_text_color_status_warning_default as WarningColor,
 } from '@patternfly/react-tokens';
 import { LMEvalKind } from '#~/k8sTypes.ts';
 import { LMEvalState } from '#~/pages/lmEval/types';
@@ -54,8 +53,4 @@ export const getLMEvalStatusProgress = (status: LMEvalKind['status']): number =>
 };
 
 export const getLMEvalStatusColor = (state: LMEvalState): string =>
-  state === LMEvalState.FAILED
-    ? DangerColor.var
-    : state === LMEvalState.COMPLETE
-    ? WarningColor.var
-    : RegularColor.var;
+  state === LMEvalState.FAILED ? DangerColor.var : RegularColor.var;
