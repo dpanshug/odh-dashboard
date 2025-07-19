@@ -1269,6 +1269,7 @@ export type DashboardCommonConfig = {
   disableKueue: boolean;
   disablePVCServing: boolean;
   disableFeatureStore?: boolean;
+  disableTrainingOperator?: boolean;
 };
 
 // [1] Intentionally disjointed fields from the CRD in this type definition
@@ -1684,5 +1685,90 @@ export type FeatureStoreKind = K8sResourceCommon & {
     feastVersion?: string;
     phase?: string;
     serviceHostnames?: Record<string, string>;
+  };
+};
+
+export type PyTorchJobKind = K8sResourceCommon & {
+  metadata: {
+    annotations?: Partial<{
+      'opendatahub.io/display-name': string;
+    }>;
+    name: string;
+    namespace: string;
+  };
+  spec: {
+    pytorchReplicaSpecs?: {
+      Master?: {
+        replicas?: number;
+        restartPolicy?: string;
+        template?: {
+          spec?: {
+            containers?: Array<{
+              name: string;
+              image: string;
+              command?: string[];
+              args?: string[];
+              env?: Array<{
+                name: string;
+                value?: string;
+              }>;
+              resources?: {
+                requests?: Record<string, string>;
+                limits?: Record<string, string>;
+              };
+            }>;
+          };
+        };
+      };
+      Worker?: {
+        replicas?: number;
+        restartPolicy?: string;
+        template?: {
+          spec?: {
+            containers?: Array<{
+              name: string;
+              image: string;
+              command?: string[];
+              args?: string[];
+              env?: Array<{
+                name: string;
+                value?: string;
+              }>;
+              resources?: {
+                requests?: Record<string, string>;
+                limits?: Record<string, string>;
+              };
+            }>;
+          };
+        };
+      };
+    };
+    runPolicy?: {
+      cleanPodPolicy?: string;
+      ttlSecondsAfterFinished?: number;
+      activeDeadlineSeconds?: number;
+      backoffLimit?: number;
+      suspend?: boolean;
+    };
+  };
+  status?: {
+    conditions?: K8sCondition[];
+    replicaStatuses?: {
+      Master?: {
+        replicas?: number;
+        active?: number;
+        succeeded?: number;
+        failed?: number;
+      };
+      Worker?: {
+        replicas?: number;
+        active?: number;
+        succeeded?: number;
+        failed?: number;
+      };
+    };
+    startTime?: string;
+    completionTime?: string;
+    lastUpdateTime?: string;
   };
 };

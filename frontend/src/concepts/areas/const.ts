@@ -18,6 +18,7 @@ export const devTemporaryFeatureFlags = {
   disableLlamaStackChatBot: true, // internal dev only
   disablePVCServing: true,
   disableProjectScoped: true,
+  disableTrainingOperator: true,
 } satisfies Partial<DashboardCommonConfig>;
 
 // Group 1: Core Dashboard Features
@@ -177,6 +178,10 @@ export const SupportedAreasStateMap: SupportedAreasState = {
   [SupportedArea.KUEUE]: {
     featureFlags: ['disableKueue'],
     requiredComponents: [StackComponent.KUEUE],
+  },
+  [SupportedArea.TRAINING_OPERATOR]: {
+    featureFlags: ['disableTrainingOperator'],
+    requiredComponents: [StackComponent.TRAINING_OPERATOR],
   },
   [SupportedArea.MODEL_CATALOG]: {
     featureFlags: ['disableModelCatalog'],

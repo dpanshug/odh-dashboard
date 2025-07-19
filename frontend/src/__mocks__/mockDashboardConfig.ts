@@ -44,6 +44,7 @@ export type MockDashboardConfigType = {
   disableKueue?: boolean;
   disablePVCServing?: boolean;
   disableFeatureStore?: boolean;
+  disableTrainingOperator?: boolean;
 };
 
 export const mockDashboardConfig = ({
@@ -83,6 +84,7 @@ export const mockDashboardConfig = ({
   disableKueue = true,
   disablePVCServing = true,
   disableFeatureStore = true,
+  disableTrainingOperator = true,
   modelServerSizes = [
     {
       name: 'Small',
@@ -243,6 +245,7 @@ export const mockDashboardConfig = ({
       disableKueue,
       disablePVCServing,
       disableFeatureStore,
+      disableTrainingOperator,
     },
     notebookController: {
       enabled: !disableNotebookController,

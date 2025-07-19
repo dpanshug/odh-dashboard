@@ -153,6 +153,13 @@ const extensions: RouteExtension[] = [
   },
   {
     type: 'app.route',
+    properties: {
+      path: '/jobs/*',
+      component: () => import('#~/pages/pytorchJobs/PyTorchJobRoutes'),
+    },
+  },
+  {
+    type: 'app.route',
     flags: {
       required: [ADMIN_USER],
     },

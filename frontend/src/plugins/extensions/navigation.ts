@@ -301,6 +301,18 @@ const extensions: NavExtension[] = [
       path: '/distributedWorkloads/*',
     },
   },
+  {
+    type: 'app.navigation/href',
+    flags: {
+      required: [SupportedArea.TRAINING_OPERATOR],
+    },
+    properties: {
+      id: 'pytorch-jobs',
+      title: 'PyTorch jobs',
+      href: '/jobs',
+      path: '/jobs/*',
+    },
+  },
 
   {
     type: 'app.navigation/section',

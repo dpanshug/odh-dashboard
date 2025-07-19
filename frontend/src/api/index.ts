@@ -11,6 +11,7 @@ export * from './k8s/notebooks';
 export * from './k8s/pods';
 export * from './k8s/projects';
 export * from './k8s/pvcs';
+export * from './k8s/pytorchJob';
 export * from './k8s/roles';
 export * from './k8s/roleBindings';
 export * from './k8s/routes';

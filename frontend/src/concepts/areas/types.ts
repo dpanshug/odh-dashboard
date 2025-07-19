@@ -66,6 +66,7 @@ export enum SupportedArea {
   /* Distributed Workloads areas */
   DISTRIBUTED_WORKLOADS = 'distributed-workloads',
   KUEUE = 'kueue',
+  TRAINING_OPERATOR = 'training-operator',
 
   /* Model Registry areas */
   MODEL_REGISTRY = 'model-registry',
@@ -102,6 +103,7 @@ export enum StackComponent {
   KUEUE = 'kueue',
   MODEL_REGISTRY = 'model-registry-operator',
   FEAST_OPERATOR = 'feastoperator',
+  TRAINING_OPERATOR = 'trainingoperator',
 }
 
 /** The possible component names that are used as keys in the `components` object of the DSC Status.

@@ -69,3 +69,10 @@ export const FeatureStoreModel: K8sModelCommon = {
   kind: 'FeatureStore',
   plural: 'featurestores',
 };
+
+export const PyTorchJobModel: K8sModelCommon = {
+  apiVersion: 'v1',
+  apiGroup: 'kubeflow.org',
+  kind: 'PyTorchJob',
+  plural: 'pytorchjobs',
+};
