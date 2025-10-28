@@ -12,17 +12,12 @@ Ask the user for the following parameters:
 
    - CRITICAL: Must stay low to avoid 300k+ token responses
 
-2. **Verify vulnerabilities in RHOAI branches** (default: No)
-
-   - If No: Skip verification step
-   - If Yes: For each high-confidence issue, checkout the RHOAI branch and verify the vulnerable package version
-
-3. **Update Jira** (default: No - dry-run mode)
+2. **Update Jira** (default: No - dry-run mode)
 
    - If No: Only extract and display results
    - If Yes: Add labels and comments to Jira
 
-4. **Export results to file** (default: No)
+3. **Export results to file** (default: No)
    - If Yes: Save to `.claude/triage-results/triage-{timestamp}.json`
 
 ### 2. Fetch Untriaged Security Issues (TWO-STEP APPROACH)
@@ -147,11 +142,9 @@ Set to `true` if:
 - Multiple conflicting versions found
 - Description is very short (<50 chars)
 
-### 5. Verify Vulnerabilities in RHOAI Branches (Optional)
+### 5. Verify Vulnerabilities in RHOAI Branches
 
-**Only if user confirms "Yes" to verify vulnerabilities:**
-
-For each issue with **high or medium confidence** where we have:
+**MANDATORY STEP**: For each issue with **high or medium confidence** where we have:
 
 - RHOAI version extracted
 - Package name extracted
@@ -376,39 +369,58 @@ If user requested export:
 
 For each successfully triaged issue (confidence >= medium):
 
-1. **Add Comment** with extracted information:
+#### Step 8.1: Generate and Review Comment
 
-   ```markdown
-   ## Automated Security Triage Results
+**IMPORTANT**: Always show the comment to the user for review BEFORE posting to Jira.
 
-   **Package:** {package_name}
-   **Affected Version:** {affected_version}
-   **Fixed Version:** {fixed_version}
-   **RHOAI Version:** {rhoai_version}
-   **Severity:** {severity}
-   **CVE IDs:** {cve_ids}
-   **Confidence:** {confidence}
+For **confirmed vulnerable** issues (verification showed is_vulnerable: true):
 
-   ### Verification Results (if performed)
+```markdown
+Blocked by z-stream. Will be fixed by upgrading {package_name} to {fixed_version}.
 
-   **Branch Checked:** {branch_checked}
-   **Installed Version:** {installed_version}
-   **Vulnerability Status:** {is_vulnerable ? "CONFIRMED VULNERABLE ✗" : "NOT VULNERABLE ✓"}
+Current version in rhoai-{rhoai_version}: {installed_version}
+```
 
-   This issue has been automatically triaged.
+For **already patched** issues (verification showed is_vulnerable: false):
 
-   _Generated on {timestamp}_
+```markdown
+Verified in rhoai-{rhoai_version}: {package_name} is already at version {installed_version} (not vulnerable).
+```
+
+**Display to User:**
+Show the complete comment and ask: "Does this comment look good to post to {issue_key}? (Yes/No)"
+
+Wait for user confirmation before proceeding.
+
+#### Step 8.2: Update Jira Issue
+
+After user confirms the comment, update the issue with:
+
+1. **Add Comment**: Use `mcp__atlassian__jira_add_comment` with the approved comment
+
+2. **Add Label**: Use `mcp__atlassian__jira_update_issue` to add `dashboard-security-triaged` label
+
+3. **Set Blocked Status** (only for confirmed vulnerable issues):
+   - Try to set blocked flag if supported by your Jira instance
+   - Note: Custom field IDs may vary, common field is `customfield_12311140`
+
+4. **Confirmation**: Show summary:
+   ```
+   ✓ Updated RHOAIENG-34291: Added label, posted comment, set blocked
+   ✓ Updated RHOAIENG-34290: Added label, posted comment, set blocked
    ```
 
-2. **Add Label**: `dashboard-security-triaged`
+#### Step 8.3: Error Handling
 
-3. **Confirmation**: Show which issues were updated
-
-**Error Handling:**
-
-- If update fails for an issue, log error and continue
-- Provide summary of successful/failed updates
+- If user rejects the comment: Skip that issue and move to next
+- If update fails for an issue: Log error and continue to next issue
+- Provide summary of successful/failed updates at the end
 - Don't rollback on partial failures
+
+**Important Notes:**
+- Always review comments with user before posting (one by one)
+- Only set "Blocked" status for confirmed vulnerable issues
+- For already patched issues, just add label and comment
 
 ## Error Handling Guidelines
 
@@ -455,8 +467,8 @@ Before processing:
 
 - Check issue limit is between 1-5 (hard limit to prevent token overflow)
 - Verify user permissions for updates (if Update Jira = Yes)
-- If verification enabled: Check that `red-hat-data-services` remote exists (run `git remote -v`)
-- If verification enabled: Record current branch to return to later (run `git branch --show-current`)
+- **MANDATORY**: Check that `red-hat-data-services` remote exists (run `git remote -v`)
+- **MANDATORY**: Record current branch to return to later (run `git branch --show-current`)
 
 During processing:
 
@@ -488,23 +500,21 @@ After processing:
 2. Agent: "Starting Security Triage Agent for RHOAIENG/AI Core Dashboard..."
 3. Agent: "How many issues to process? (1-5, default: 3)"
 4. User: 3
-5. Agent: "Verify vulnerabilities in RHOAI branches? (Yes/No, default: No)"
-6. User: Yes
-7. Agent: "Update Jira after extraction? (Yes/No, default: No)"
-8. User: No
-9. Agent: "Export results to file? (Yes/No, default: No)"
-10. User: Yes
-11. Agent: "Fetching issue keys from Jira (lightweight query)..."
-12. Agent: "Found 3 issues. Fetching details one-by-one..."
-13. Agent: [Shows progress for each issue as it's fetched and processed]
-14. Agent: "Verifying vulnerabilities in RHOAI branches..."
-15. Agent: "Checking rhoai-2.22: axios... VULNERABLE ✗ (installed: 1.6.0)"
-16. Agent: "Checking rhoai-2.19: axios... PATCHED ✓ (installed: 1.11.0)"
-17. Agent: [Displays summary table with verification results]
-18. Agent: [Displays verification summary]
-19. Agent: [Displays statistics]
-20. Agent: "Results exported to .claude/triage-results/triage-2025-01-28-143052.json"
-21. Agent: "Triage complete!"
+5. Agent: "Update Jira after extraction? (Yes/No, default: No)"
+6. User: No
+7. Agent: "Export results to file? (Yes/No, default: No)"
+8. User: Yes
+9. Agent: "Fetching issue keys from Jira (lightweight query)..."
+10. Agent: "Found 3 issues. Fetching details one-by-one..."
+11. Agent: [Shows progress for each issue as it's fetched and processed]
+12. Agent: "Verifying vulnerabilities in RHOAI branches..." (mandatory step)
+13. Agent: "Checking rhoai-2.22: axios... VULNERABLE ✗ (installed: 1.6.0)"
+14. Agent: "Checking rhoai-2.19: axios... PATCHED ✓ (installed: 1.11.0)"
+15. Agent: [Displays summary table with verification results]
+16. Agent: [Displays verification summary]
+17. Agent: [Displays statistics]
+18. Agent: "Results exported to .claude/triage-results/triage-2025-01-28-143052.json"
+19. Agent: "Triage complete!"
 ```
 
 ## Best Practices
