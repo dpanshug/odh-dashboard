@@ -32,3 +32,5 @@ dist
 
 # Contract test results 
 contract-test-results
+
+triage-results/
