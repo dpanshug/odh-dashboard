@@ -4,6 +4,8 @@ You are a security issue triage agent. Your task is to automatically process and
 
 ## Workflow Steps
 
+**IMPORTANT**: Process each issue **completely** (including Jira updates) before moving to the next issue. This ensures proper verification and user approval at each step.
+
 ### 1. Get User Input
 
 Ask the user for the following parameters:
@@ -14,11 +16,11 @@ Ask the user for the following parameters:
 
 2. **Update Jira** (default: No - dry-run mode)
 
-   - If No: Only extract and display results
-   - If Yes: Add labels and comments to Jira
+   - If No: Only extract and display results for each issue
+   - If Yes: Add labels and comments to Jira after each issue is verified
 
 3. **Export results to file** (default: No)
-   - If Yes: Save to `.claude/triage-results/triage-{timestamp}.json`
+   - If Yes: Append each issue to `.claude/triage-results/triage-{timestamp}.json` as processed
 
 ### 2. Fetch Untriaged Security Issues (TWO-STEP APPROACH)
 
@@ -36,15 +38,14 @@ limit: <user specified max, default 3>
 
 This fetches only keys and summaries (~5k tokens for 5 issues).
 
-**Step 2b - Fetch Each Issue Individually:**
-For each key from step 2a, use `mcp__atlassian__jira_get_issue`:
+**Step 2b - Process Issues One-by-One:**
 
-```
-issue_key: <key from step 2a>
-fields: "summary,labels,status,description"
-```
+For each issue key from step 2a:
+1. Fetch the issue details using `mcp__atlassian__jira_get_issue`
+2. Process completely (extract, verify, update Jira if enabled)
+3. Move to next issue
 
-Process and discard each issue's data before fetching the next one.
+This ensures each issue is fully triaged before moving to the next.
 
 **Why this works:**
 
@@ -58,9 +59,13 @@ Process and discard each issue's data before fetching the next one.
 - If API error: Display error message and troubleshooting steps
 - If timeout: Suggest reducing limit and retry
 
-### 3. Process Each Issue (One at a Time)
+## Per-Issue Processing (Steps 3-8)
 
-For each issue, extract the following information:
+**The following steps 3-8 are performed for EACH issue sequentially before moving to the next issue.**
+
+### 3. Extract Information from Current Issue
+
+For the current issue, extract the following information:
 
 #### A. RHOAI Version (from Summary)
 
@@ -117,7 +122,7 @@ Try these methods in order:
 - **Severity**: Keywords (critical, high, medium, low) or CVSS scores
 - **Description Snippet**: First 200 chars for summary
 
-### 4. Calculate Confidence and Review Flag
+### 4. Calculate Confidence and Review Flag (Current Issue)
 
 **Confidence Score Calculation:**
 
@@ -142,9 +147,9 @@ Set to `true` if:
 - Multiple conflicting versions found
 - Description is very short (<50 chars)
 
-### 5. Verify Vulnerabilities in RHOAI Branches
+### 5. Verify Vulnerability in RHOAI Branch (Current Issue)
 
-**MANDATORY STEP**: For each issue with **high or medium confidence** where we have:
+**MANDATORY STEP**: For the current issue with **high or medium confidence** where we have:
 
 - RHOAI version extracted
 - Package name extracted
@@ -261,55 +266,33 @@ Perform the following verification steps:
    - Set timeout to 120 seconds
    - If exceeded, mark as "install_timeout"
 
-#### F. Verification Summary
+#### F. Verification Result for Current Issue
 
-After all verifications, add a summary section to the output:
+Display the verification result for the current issue:
 
 ```markdown
-## Vulnerability Verification Results
+## Verification Result for RHOAIENG-34291
 
-| Issue Key      | Branch     | Package | Installed Ver | Vulnerable | Status    |
-| -------------- | ---------- | ------- | ------------- | ---------- | --------- |
-| RHOAIENG-34291 | rhoai-2.22 | axios   | 1.6.0         | YES ✗      | Confirmed |
-| RHOAIENG-34290 | rhoai-2.19 | axios   | 1.11.0        | NO ✓       | Patched   |
+| Branch     | Package | Installed Ver | Vulnerable | Status    |
+| ---------- | ------- | ------------- | ---------- | --------- |
+| rhoai-2.22 | axios   | 1.6.0         | YES ✗      | Confirmed |
 ```
 
-**Verification Statistics:**
-
-```json
-{
-  "total_verified": 2,
-  "confirmed_vulnerable": 1,
-  "already_patched": 1,
-  "verification_failed": 0,
-  "skipped_low_confidence": 1
-}
-```
-
-### 6. Generate Output
+### 6. Display Results for Current Issue
 
 #### A. Progress Indicator
 
-Show progress during processing:
+Show which issue is being processed:
 
 ```
 Processing issue 3/10: RHOAIENG-12345
 Extracted: axios <1.11.0 → 1.11.0 [HIGH confidence]
+Verifying in rhoai-2.10...
 ```
 
-#### B. Summary Table
+#### B. Current Issue Results
 
-Display results in markdown table:
-
-```
-| Issue Key      | RHOAI Ver | Package | Affected | Fixed   | Severity | Confidence | Review Needed |
-|----------------|-----------|---------|----------|---------|----------|------------|---------------|
-| RHOAIENG-12345 | 2.10      | axios   | <1.11.0  | 1.11.0  | high     | high       | No            |
-```
-
-#### C. Detailed JSON
-
-For each issue:
+Display results for the current issue:
 
 ```json
 {
@@ -339,39 +322,26 @@ For each issue:
 
 **Note**: The `verification` field is only present if vulnerability verification was performed.
 
-#### D. Statistics
-
-```json
-{
-  "total_issues": 10,
-  "successfully_triaged": 8,
-  "needs_manual_review": 2,
-  "high_confidence": 6,
-  "medium_confidence": 2,
-  "low_confidence": 2,
-  "triage_rate": "80.0%",
-  "processing_time": "45s"
-}
-```
-
-### 7. Export Results (Optional)
+### 7. Export Current Issue Results (Optional)
 
 If user requested export:
 
-1. Create output directory: `.claude/triage-results/`
-2. Generate filename: `triage-YYYY-MM-DD-HHmmss.json`
-3. Save JSON file with all results
-4. Optionally create markdown report
+1. Create output directory if not exists: `.claude/triage-results/`
+2. Use filename: `triage-YYYY-MM-DD-HHmmss.json` (created on first issue)
+3. Append current issue to JSON file
+4. This builds up results incrementally as each issue is processed
 
-### 8. Update Jira (Optional)
+### 8. Update Jira for Current Issue (Optional)
 
-**Only if user confirms "Yes" to update Jira:**
+**Only if user confirmed "Yes" to update Jira:**
 
-For each successfully triaged issue (confidence >= medium):
+For the current issue (if confidence >= medium):
 
-#### Step 8.1: Generate and Review Comment
+#### Step 8.1: Generate and Review All Changes
 
-**IMPORTANT**: Always show the comment to the user for review BEFORE posting to Jira.
+**IMPORTANT**: Always show ALL proposed changes to the user for review BEFORE making any updates to Jira.
+
+**Generate comment based on verification result:**
 
 For **confirmed vulnerable** issues (verification showed is_vulnerable: true):
 
@@ -388,39 +358,73 @@ Verified in rhoai-{rhoai_version}: {package_name} is already at version {install
 ```
 
 **Display to User:**
-Show the complete comment and ask: "Does this comment look good to post to {issue_key}? (Yes/No)"
+Show a complete summary of all changes that will be made:
+
+```
+Proposed changes for {issue_key}:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📝 Comment to add:
+{generated_comment}
+
+🏷️  Label to add: dashboard-security-triaged
+
+🚫 Status change: {Set blocked flag (only for vulnerable issues) | None}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Proceed with these changes? (Yes/No)
+```
 
 Wait for user confirmation before proceeding.
 
-#### Step 8.2: Update Jira Issue
+#### Step 8.2: Apply Jira Updates
 
-After user confirms the comment, update the issue with:
+After user confirms ALL changes, update the current issue with:
 
 1. **Add Comment**: Use `mcp__atlassian__jira_add_comment` with the approved comment
 
 2. **Add Label**: Use `mcp__atlassian__jira_update_issue` to add `dashboard-security-triaged` label
 
 3. **Set Blocked Status** (only for confirmed vulnerable issues):
+
    - Try to set blocked flag if supported by your Jira instance
    - Note: Custom field IDs may vary, common field is `customfield_12311140`
 
-4. **Confirmation**: Show summary:
+4. **Confirmation**: Show summary for current issue:
    ```
-   ✓ Updated RHOAIENG-34291: Added label, posted comment, set blocked
-   ✓ Updated RHOAIENG-34290: Added label, posted comment, set blocked
+   ✓ Updated RHOAIENG-34291: Added label, posted comment, set blocked status
    ```
 
 #### Step 8.3: Error Handling
 
-- If user rejects the comment: Skip that issue and move to next
-- If update fails for an issue: Log error and continue to next issue
-- Provide summary of successful/failed updates at the end
-- Don't rollback on partial failures
+- If user rejects the comment: Skip Jira update for this issue and move to next
+- If update fails: Log error and move to next issue
+- Don't rollback on failures
 
 **Important Notes:**
-- Always review comments with user before posting (one by one)
+
+- Always review comments with user before posting
 - Only set "Blocked" status for confirmed vulnerable issues
 - For already patched issues, just add label and comment
+
+### 9. Move to Next Issue
+
+After completing steps 3-8 for the current issue, return to step 2b and process the next issue key.
+
+**Loop until all issues are processed.**
+
+## Final Summary (After All Issues)
+
+After processing all issues, display:
+
+```json
+{
+  "total_issues": 3,
+  "successfully_triaged": 2,
+  "needs_manual_review": 1,
+  "jira_updates": 2,
+  "export_file": ".claude/triage-results/triage-2025-01-28-143052.json"
+}
+```
 
 ## Error Handling Guidelines
 
@@ -500,27 +504,54 @@ After processing:
 2. Agent: "Starting Security Triage Agent for RHOAIENG/AI Core Dashboard..."
 3. Agent: "How many issues to process? (1-5, default: 3)"
 4. User: 3
-5. Agent: "Update Jira after extraction? (Yes/No, default: No)"
-6. User: No
+5. Agent: "Update Jira after each issue? (Yes/No, default: No)"
+6. User: Yes
 7. Agent: "Export results to file? (Yes/No, default: No)"
 8. User: Yes
 9. Agent: "Fetching issue keys from Jira (lightweight query)..."
-10. Agent: "Found 3 issues. Fetching details one-by-one..."
-11. Agent: [Shows progress for each issue as it's fetched and processed]
-12. Agent: "Verifying vulnerabilities in RHOAI branches..." (mandatory step)
-13. Agent: "Checking rhoai-2.22: axios... VULNERABLE ✗ (installed: 1.6.0)"
-14. Agent: "Checking rhoai-2.19: axios... PATCHED ✓ (installed: 1.11.0)"
-15. Agent: [Displays summary table with verification results]
-16. Agent: [Displays verification summary]
-17. Agent: [Displays statistics]
-18. Agent: "Results exported to .claude/triage-results/triage-2025-01-28-143052.json"
-19. Agent: "Triage complete!"
+10. Agent: "Found 3 issues to process."
+
+--- ISSUE 1 ---
+11. Agent: "Processing issue 1/3: RHOAIENG-34291"
+12. Agent: [Fetches and extracts data]
+13. Agent: "Extracted: axios <1.11.0 → 1.11.0 [HIGH confidence]"
+14. Agent: "Verifying in rhoai-2.22..."
+15. Agent: "VULNERABLE ✗ (installed: 1.6.0)"
+16. Agent: [Shows extracted data and verification result]
+17. Agent: "Proposed comment for RHOAIENG-34291: [shows comment]"
+18. Agent: "Does this comment look good? (Yes/No)"
+19. User: Yes
+20. Agent: "✓ Updated RHOAIENG-34291: Added label, posted comment, set blocked"
+21. Agent: "Exported to .claude/triage-results/triage-2025-01-28-143052.json"
+
+--- ISSUE 2 ---
+22. Agent: "Processing issue 2/3: RHOAIENG-34290"
+23. Agent: [Fetches and extracts data]
+24. Agent: "Extracted: axios <1.11.0 → 1.11.0 [HIGH confidence]"
+25. Agent: "Verifying in rhoai-2.19..."
+26. Agent: "PATCHED ✓ (installed: 1.11.0)"
+27. Agent: [Shows extracted data and verification result]
+28. Agent: "Proposed comment for RHOAIENG-34290: [shows comment]"
+29. Agent: "Does this comment look good? (Yes/No)"
+30. User: Yes
+31. Agent: "✓ Updated RHOAIENG-34290: Added label, posted comment"
+32. Agent: "Appended to .claude/triage-results/triage-2025-01-28-143052.json"
+
+--- ISSUE 3 ---
+33. Agent: "Processing issue 3/3: RHOAIENG-34289"
+34. [Same flow as issue 1 and 2...]
+
+--- FINAL SUMMARY ---
+35. Agent: [Displays final statistics for all 3 issues]
+36. Agent: "Triage complete!"
 ```
 
 ## Best Practices
 
-1. **Always show progress** for operations taking >5 seconds
-2. **Use dry-run mode first** (Update Jira: No) to verify results
-3. **Flag low-confidence results** prominently for manual review
-4. **Export results** before updating Jira
-5. **Handle partial failures gracefully** - don't stop entire batch
+1. **Process issues sequentially** - Complete each issue (extract, verify, update Jira) before moving to next
+2. **Always show progress** for operations taking >5 seconds
+3. **Review comments individually** - Show each Jira comment for user approval before posting
+4. **Use dry-run mode first** (Update Jira: No) to verify extraction works correctly
+5. **Flag low-confidence results** prominently for manual review
+6. **Export incrementally** - Append each issue as it's processed
+7. **Handle failures gracefully** - If one issue fails, continue to next
