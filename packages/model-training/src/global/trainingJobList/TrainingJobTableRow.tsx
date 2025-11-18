@@ -1,7 +1,15 @@
 import * as React from 'react';
 import { Tr, Td, ActionsColumn } from '@patternfly/react-table';
-import { Timestamp, Flex, FlexItem, TimestampTooltipVariant, Button } from '@patternfly/react-core';
-import { CubesIcon } from '@patternfly/react-icons';
+import {
+  Timestamp,
+  Flex,
+  FlexItem,
+  TimestampTooltipVariant,
+  Button,
+  Tooltip,
+  Icon,
+} from '@patternfly/react-core';
+import { CubesIcon, EditIcon } from '@patternfly/react-icons';
 import { getDisplayNameFromK8sResource } from '@odh-dashboard/internal/concepts/k8s/utils';
 import { relativeTime } from '@odh-dashboard/internal/utilities/time';
 import useNotification from '@odh-dashboard/internal/utilities/useNotification';
@@ -9,11 +17,12 @@ import TrainingJobProject from './TrainingJobProject';
 import { getTrainingJobStatusSync } from './utils';
 import TrainingJobClusterQueue from './TrainingJobClusterQueue';
 import HibernationToggleModal from './HibernationToggleModal';
+import ScaleNodesModal from './ScaleNodesModal';
 import TrainingJobStatus from './components/TrainingJobStatus';
 import StateActionToggle from './StateActionToggle';
 import { TrainJobKind } from '../../k8sTypes';
 import { TrainingJobState } from '../../types';
-import { toggleTrainJobHibernation } from '../../api';
+import { toggleTrainJobHibernation, scaleNodes } from '../../api';
 
 type TrainingJobTableRowProps = {
   job: TrainJobKind;
@@ -32,7 +41,9 @@ const TrainingJobTableRow: React.FC<TrainingJobTableRowProps> = ({
 }) => {
   const notification = useNotification();
   const [hibernationModalOpen, setHibernationModalOpen] = React.useState(false);
+  const [scaleNodesModalOpen, setScaleNodesModalOpen] = React.useState(false);
   const [isToggling, setIsToggling] = React.useState(false);
+  const [isScaling, setIsScaling] = React.useState(false);
 
   const displayName = getDisplayNameFromK8sResource(job);
   const nodesCount = job.spec.trainer.numNodes || 0;
@@ -44,6 +55,9 @@ const TrainingJobTableRow: React.FC<TrainingJobTableRowProps> = ({
   const isQueued = status === TrainingJobState.QUEUED;
   const isRunning = status === TrainingJobState.RUNNING;
   const isPending = status === TrainingJobState.PENDING;
+
+  // Allow scaling when job is running or paused (not completed, failed, etc.)
+  const canScaleNodes = isRunning || isPaused;
 
   const handleHibernationToggle = async () => {
     setIsToggling(true);
@@ -72,6 +86,24 @@ const TrainingJobTableRow: React.FC<TrainingJobTableRowProps> = ({
     } finally {
       setIsToggling(false);
       setHibernationModalOpen(false);
+    }
+  };
+
+  const handleScaleNodes = async (newNodeCount: number) => {
+    setIsScaling(true);
+    try {
+      await scaleNodes(job, newNodeCount);
+      notification.success('Node scaling successful', `Scaled to ${newNodeCount} nodes`);
+      // Note: The job will be refreshed by the watch mechanism
+    } catch (error) {
+      console.error('Error scaling nodes:', error);
+      notification.error(
+        'Failed to scale nodes',
+        error instanceof Error ? error.message : 'Unknown error occurred',
+      );
+    } finally {
+      setIsScaling(false);
+      setScaleNodesModalOpen(false);
     }
   };
 
@@ -115,9 +147,7 @@ const TrainingJobTableRow: React.FC<TrainingJobTableRowProps> = ({
                 <FlexItem>{nodesCount}</FlexItem>
               </Flex>
             </FlexItem>
-            {/* Show scaling hint when scaling is available */}
-            {/* TODO: RHOAIENG-37576 Uncomment this when scaling is implemented */}
-            {/* {(isNotPaused || canScaleNodes) && (
+            {canScaleNodes && (
               <FlexItem>
                 <Tooltip content="Click to scale nodes">
                   <Button
@@ -133,7 +163,7 @@ const TrainingJobTableRow: React.FC<TrainingJobTableRowProps> = ({
                   </Button>
                 </Tooltip>
               </FlexItem>
-            )} */}
+            )}
           </Flex>
         </Td>
         <Td dataLabel="Cluster queue">
@@ -180,6 +210,15 @@ const TrainingJobTableRow: React.FC<TrainingJobTableRowProps> = ({
         isToggling={isToggling}
         onClose={() => setHibernationModalOpen(false)}
         onConfirm={handleHibernationToggle}
+      />
+
+      <ScaleNodesModal
+        job={scaleNodesModalOpen ? job : undefined}
+        currentNodeCount={nodesCount}
+        isPaused={isPaused}
+        isScaling={isScaling}
+        onClose={() => setScaleNodesModalOpen(false)}
+        onConfirm={handleScaleNodes}
       />
     </>
   );

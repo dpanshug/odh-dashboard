@@ -166,3 +166,6 @@ export const toggleTrainJobHibernation = async (
     };
   }
 };
+
+// Export scaling functions
+export { updateTrainJobNumNodes, scaleNodes } from './api/scaling';
