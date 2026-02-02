@@ -186,6 +186,7 @@ const ConnectionTypeForm: React.FC<Props> = ({
             <ConnectionTypeDetailsHelperText
               connectionType={connectionType}
               isPreview={isPreview}
+              connectionNameDesc={connectionNameDesc}
             />
           </FlexItem>
         </Flex>

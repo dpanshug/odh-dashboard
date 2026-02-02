@@ -11,10 +11,9 @@ import {
   Popover,
 } from '@patternfly/react-core';
 import { InfoCircleIcon } from '@patternfly/react-icons';
-import {
-  getDescriptionFromK8sResource,
-  getDisplayNameFromK8sResource,
-} from '#~/concepts/k8s/utils';
+import { getDescriptionFromK8sResource } from '#~/concepts/k8s/utils';
+import { K8sNameDescriptionFieldData } from '#~/concepts/k8s/K8sNameDescriptionField/types';
+
 import { ConnectionTypeConfigMapObj } from './types';
 import UnspecifiedValue from './fields/UnspecifiedValue';
 import CategoryLabel from './CategoryLabel';
@@ -22,13 +21,20 @@ import CategoryLabel from './CategoryLabel';
 type Props = {
   connectionType?: ConnectionTypeConfigMapObj;
   isPreview: boolean;
+  connectionNameDesc?: K8sNameDescriptionFieldData;
 };
-
-export const ConnectionTypeDetailsHelperText: React.FC<Props> = ({ connectionType, isPreview }) => {
+export const ConnectionTypeDetailsHelperText: React.FC<Props> = ({
+  connectionType,
+  isPreview,
+  connectionNameDesc,
+}) => {
   const displayName = isPreview
     ? connectionType && connectionType.metadata.annotations?.['openshift.io/display-name']
-    : connectionType && getDisplayNameFromK8sResource(connectionType);
+    : connectionNameDesc?.name;
   const description = connectionType && getDescriptionFromK8sResource(connectionType);
+
+  const connectionName = connectionNameDesc?.name;
+  const connectionDescription = connectionNameDesc?.description;
 
   return (
     <HelperText>
@@ -41,6 +47,18 @@ export const ConnectionTypeDetailsHelperText: React.FC<Props> = ({ connectionTyp
                 <DescriptionListTerm>Connection type name</DescriptionListTerm>
                 <DescriptionListDescription>
                   {displayName || <UnspecifiedValue />}
+                </DescriptionListDescription>
+              </DescriptionListGroup>
+              <DescriptionListGroup>
+                <DescriptionListTerm>Connection Name</DescriptionListTerm>
+                <DescriptionListDescription>
+                  {connectionName || <UnspecifiedValue />}
+                </DescriptionListDescription>
+              </DescriptionListGroup>
+              <DescriptionListGroup>
+                <DescriptionListTerm>Connection Description</DescriptionListTerm>
+                <DescriptionListDescription>
+                  {connectionDescription || <UnspecifiedValue />}
                 </DescriptionListDescription>
               </DescriptionListGroup>
               {description ? (
