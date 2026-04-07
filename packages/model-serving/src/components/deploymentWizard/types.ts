@@ -16,6 +16,7 @@ import type { RecursivePartial } from '@odh-dashboard/internal/typeHelpers';
 import type { z } from 'zod';
 import type {
   ModelServerOption,
+  ModelServerSelectFieldData,
   useModelServerSelectField,
 } from './fields/ModelServerTemplateSelectField';
 import type { useModelTypeField } from './fields/ModelTypeSelectField';
@@ -63,7 +64,7 @@ export enum ModelStateLabel {
   STOPPED = 'Stopped',
   STOPPING = 'Stopping',
   STARTING = 'Starting',
-  STARTED = 'Started',
+  READY = 'Ready',
   RUNNING = 'Running',
   FAILED_TO_LOAD = 'Failed to load',
 }
@@ -78,6 +79,11 @@ export enum WizardStepTitle {
   MODEL_DEPLOYMENT = 'Model deployment',
   ADVANCED_SETTINGS = 'Advanced settings',
   REVIEW = 'Review',
+}
+
+export enum YAMLViewerToggleOption {
+  YAML = 'YAML',
+  FORM = 'Form',
 }
 
 export type ModelLocationData = {
@@ -118,7 +124,7 @@ export type InitialWizardFormData = {
   hardwareProfile?: Parameters<typeof useHardwareProfileConfig>;
   modelFormat?: SupportedModelFormats;
   modelLocationData?: ModelLocationData;
-  modelServer?: ModelServerOption;
+  modelServer?: { data: ModelServerSelectFieldData };
   connections?: LabeledConnection[];
   initSelectedConnection?: LabeledConnection | undefined;
   modelAvailability?: ModelAvailabilityFieldsData;
@@ -172,7 +178,6 @@ export type TokenAuthenticationFieldData = WizardFormData['state']['tokenAuthent
 export type NumReplicasFieldData = WizardFormData['state']['numReplicas']['data'];
 export type RuntimeArgsFieldData = WizardFormData['state']['runtimeArgs']['data'];
 export type EnvironmentVariablesFieldData = WizardFormData['state']['environmentVariables']['data'];
-export type ModelServerSelectFieldData = WizardFormData['state']['modelServer']['data'];
 export type CreateConnectionFieldData = WizardFormData['state']['createConnectionData']['data'];
 export type HardwareProfileConfigFieldData =
   WizardFormData['state']['hardwareProfileConfig']['formData'];
@@ -198,6 +203,11 @@ export type DeploymentWizardFieldBase<ID extends DeploymentWizardFieldId | strin
 
 export type GenericFieldProps = {
   isEditing?: boolean;
+  isDisabled?: boolean;
+};
+
+export type WizardStateOverrides = {
+  tokenAuthentication?: { isDisabled?: boolean };
 };
 
 export type WizardField<
@@ -210,6 +220,7 @@ export type WizardField<
   step?: 'modelSource' | 'modelDeployment' | 'advancedOptions' | 'summary'; // used for validation of the entire step. Ideally this should be dynamic from the parent field.
   reducerFunctions: {
     setFieldData: (fieldData: FieldData) => FieldData;
+    getFieldData?: (storedValue: FieldData, wizardState: WizardFormData['state']) => FieldData;
     getInitialFieldData: (
       existingFieldData?: FieldData,
       externalData?: ExternalData,
@@ -217,8 +228,13 @@ export type WizardField<
     ) => FieldData;
     resolveDependencies?: (formData: WizardFormData['state']) => Dependencies;
     validationSchema?: z.ZodSchema<FieldData>;
+    getFieldOverrides?: (
+      effectiveValue: FieldData,
+      wizardState: RecursivePartial<WizardFormData['state']>,
+    ) => WizardStateOverrides;
   };
-  externalDataHook?: (initialData?: InitialWizardFormData) => {
+  shouldResetOnDependencyChange?: boolean;
+  externalDataHook?: (dependencies?: Dependencies) => {
     data: ExternalData;
     loaded: boolean;
     loadError?: Error;
@@ -226,7 +242,8 @@ export type WizardField<
   component: React.FC<
     {
       id: string;
-      value: FieldData;
+      value?: FieldData;
+      initialValue?: FieldData;
       onChange: (value: FieldData) => void;
       externalData?: { data: ExternalData; loaded: boolean; loadError?: Error };
       dependencies?: Dependencies;
@@ -237,6 +254,19 @@ export type WizardField<
     wizardState: WizardFormData['state'],
     externalData?: ExternalData,
   ) => WizardReviewSection[];
+};
+
+export const resolveFieldValue = (
+  field: WizardField,
+  state: WizardFormData['state'],
+): unknown | undefined => {
+  const storedValue: unknown = field.id in state ? state[field.id] : undefined;
+  if (storedValue == null) {
+    return undefined;
+  }
+  return field.reducerFunctions.getFieldData
+    ? field.reducerFunctions.getFieldData(storedValue, state)
+    : storedValue;
 };
 
 // actual fields

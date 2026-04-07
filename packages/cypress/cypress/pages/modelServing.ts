@@ -23,19 +23,17 @@ class ModelServingToolbar extends Contextual<HTMLElement> {
 }
 class ModelServingGlobal {
   visit(project?: string) {
-    cy.visitWithLogin(`/ai-hub/deployments${project ? `/${project}` : ''}`);
+    cy.visitWithLogin(`/ai-hub/models/deployments${project ? `/${project}` : ''}`);
     this.wait();
   }
 
   navigate() {
-    appChrome
-      .findNavItem({ name: 'Deployments', rootSection: 'AI hub', subSection: 'Models' })
-      .click();
+    appChrome.findNavItem({ name: 'Models', rootSection: 'AI hub' }).click();
     this.wait();
   }
 
   private wait() {
-    cy.findByTestId('app-page-title').should('have.text', 'Deployments');
+    cy.findByTestId('app-tab-page-title').should('have.text', 'Models');
     cy.testA11y();
   }
 
@@ -907,7 +905,7 @@ class ModelServingWizard extends Wizard {
   }
 
   visit() {
-    cy.visitWithLogin(`/ai-hub/deployments/deploy`);
+    cy.visitWithLogin(`/ai-hub/models/deployments/deploy`);
   }
 
   findSpinner() {
@@ -966,18 +964,23 @@ class ModelServingWizard extends Wizard {
     return this.findModelFormatSelect().findSelectOption(name);
   }
 
-  findServingRuntimeAutoSelectRadio() {
-    return cy.findByLabelText(
-      'Auto-select the best runtime for my model based on model type, model format, and hardware profile',
-    );
+  /** Selects the auto-select radio (works for both serving runtimes and model deployment configs). */
+  findModelServerAutoSelectRadio() {
+    return cy.findByTestId('model-server-auto-select-radio');
+  }
+
+  /** Returns the suggested option shown in the auto-select radio body after a matching hardware profile is selected. */
+  findModelServerAutoSelectSuggestion() {
+    return cy.findByTestId('model-server-auto-select-suggestion');
   }
 
   findServingRuntimeTemplateSearchSelector() {
     return cy.findByTestId('serving-runtime-template-selection-toggle');
   }
 
-  findServingRuntimeSelectRadio() {
-    return cy.findByLabelText('Select from a list of serving runtimes, including custom ones');
+  /** Selects the manual-select radio (works for both serving runtimes and model deployment configs). */
+  findModelServerManualSelectRadio() {
+    return cy.findByTestId('model-server-manual-select-radio');
   }
 
   findFirstServingRuntimeTemplateOption() {
@@ -991,10 +994,10 @@ class ModelServingWizard extends Wizard {
   }
 
   selectServingRuntimeOption(name: string) {
-    this.findServingRuntimeAutoSelectRadio().then(($radio) => {
+    this.findModelServerAutoSelectRadio().then(($radio) => {
       if ($radio.is(':checked')) {
         // Auto-select the best runtime for my model based on model type, model format, and hardware profile
-        cy.findByText(name).should('exist');
+        this.findModelServerAutoSelectSuggestion().should('contain.text', name);
       } else {
         // Select from a list of serving runtimes, including custom ones
         this.findServingRuntimeTemplateSearchSelector().click();
@@ -1300,6 +1303,14 @@ class ModelServingWizard extends Wizard {
     return cy.findByRole('button', { name: 'Discard' });
   }
 
+  findGatewaySelect() {
+    return cy.findByTestId('gateway-select');
+  }
+
+  findGatewaySelectOption(name: string) {
+    return this.findGatewaySelect().findSelectOption(name);
+  }
+
   findDeploymentStrategySection() {
     return cy.findByTestId('deployment-strategy-section');
   }
@@ -1341,12 +1352,19 @@ class ModelServingWizard extends Wizard {
     return this.findFooter().findByTestId('wizard-submit-button');
   }
 
+  selectProfileContaining(name: string): void {
+    this.findHardwareProfileSelect().click();
+    cy.findByRole('option', {
+      name: (content) => content.includes(name),
+    }).click();
+  }
+
   findReviewStepModelDetailsSection() {
     return cy.findByTestId('review-step-model-details');
   }
 
-  findYAMLViewerToggle(name: 'YAML' | 'Form') {
-    return cy.findByRole('button', { name });
+  findYAMLViewerToggle(toggle: string) {
+    return cy.findByRole('button', { name: toggle });
   }
 
   findYAMLCodeEditor() {
@@ -1367,6 +1385,10 @@ class ModelServingWizard extends Wizard {
 
   findLegacyModeCheckbox() {
     return cy.findByTestId('legacy-mode-checkbox');
+  }
+
+  findYAMLEditFallbackAlert() {
+    return cy.findByTestId('yaml-fallback-alert');
   }
 }
 

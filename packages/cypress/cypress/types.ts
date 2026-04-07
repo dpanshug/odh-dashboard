@@ -284,7 +284,8 @@ export type DataScienceProjectData = {
   modelStatus: string;
   hardwareProfileName: string;
   resourceType: string;
-  Image: string;
+  existingImage: string;
+  replaceImage: string;
   serviceAccountName1: string;
   serviceAccountName2: string;
   connectionNameSuffix: string;
@@ -293,6 +294,7 @@ export type DataScienceProjectData = {
   connectionDescription: string;
   userSubjectKind: string;
   groupSubjectKind: string;
+  yamlEditorModelName: string;
 };
 
 export type NotebookImageData = {
@@ -527,7 +529,7 @@ export const AccessModeLabelMap: Record<AccessMode, string> = {
 };
 
 export enum NotebookStatusLabel {
-  Running = 'Running',
+  Ready = 'Ready',
   Starting = 'Starting',
   Stopping = 'Stopping',
   Stopped = 'Stopped',
@@ -606,7 +608,7 @@ export type PipelineTestData = {
   pipelineDescription: string;
   runName: string;
   runDescription: string;
-  experimentName: string;
+  runGroupName: string;
   dspaSecretName: string;
   pipelineUrl: string;
 };
@@ -633,4 +635,16 @@ export type TiersTestData = {
   tierDeploymentOption: string;
   groupsCount: number;
   limits: string;
+};
+
+export type PromptManagementPromptData = {
+  name: string;
+  versionLabel: string;
+  template: string;
+  commitMessage: string;
+};
+
+export type PromptManagementTestData = {
+  projectName: string;
+  prompts: PromptManagementPromptData[];
 };

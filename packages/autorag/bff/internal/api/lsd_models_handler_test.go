@@ -14,6 +14,7 @@ import (
 	"github.com/opendatahub-io/autorag-library/bff/internal/constants"
 	ls "github.com/opendatahub-io/autorag-library/bff/internal/integrations/llamastack"
 	"github.com/opendatahub-io/autorag-library/bff/internal/integrations/llamastack/lsmocks"
+	"github.com/opendatahub-io/autorag-library/bff/internal/models"
 	"github.com/opendatahub-io/autorag-library/bff/internal/repositories"
 	"github.com/stretchr/testify/assert"
 )
@@ -209,6 +210,10 @@ func (m *mockErrorClient) ListModels(ctx context.Context) ([]openai.Model, error
 	return nil, assert.AnError
 }
 
+func (m *mockErrorClient) ListProviders(ctx context.Context) ([]models.LlamaStackProvider, error) {
+	return nil, assert.AnError
+}
+
 // mockEmptyClient is a mock client that returns an empty models list
 type mockEmptyClient struct{}
 
@@ -218,11 +223,19 @@ func (m *mockEmptyClient) ListModels(ctx context.Context) ([]openai.Model, error
 	return []openai.Model{}, nil
 }
 
+func (m *mockEmptyClient) ListProviders(ctx context.Context) ([]models.LlamaStackProvider, error) {
+	return []models.LlamaStackProvider{}, nil
+}
+
 // mockLlamaStackErrClient is a mock client that returns a typed LlamaStackError (connection failure)
 type mockLlamaStackErrClient struct{}
 
 var _ ls.LlamaStackClientInterface = (*mockLlamaStackErrClient)(nil)
 
 func (m *mockLlamaStackErrClient) ListModels(ctx context.Context) ([]openai.Model, error) {
+	return nil, ls.NewConnectionError("mock: could not reach LlamaStack server")
+}
+
+func (m *mockLlamaStackErrClient) ListProviders(ctx context.Context) ([]models.LlamaStackProvider, error) {
 	return nil, ls.NewConnectionError("mock: could not reach LlamaStack server")
 }

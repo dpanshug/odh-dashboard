@@ -6,6 +6,7 @@ import (
 
 	"github.com/openai/openai-go/v2"
 	"github.com/opendatahub-io/autorag-library/bff/internal/integrations/llamastack"
+	"github.com/opendatahub-io/autorag-library/bff/internal/models"
 )
 
 // MockLlamaStackClient provides a mock implementation of the LlamaStackClientInterface for testing
@@ -34,6 +35,15 @@ func (m *MockLlamaStackClient) ListModels(ctx context.Context) ([]openai.Model, 
 		createMockModel("all-minilm:l6-v2", "embedding", "ollama", "ollama://models/all-minilm:l6-v2"),
 		createMockModel("nomic-embed-text", "embedding", "ollama", "ollama://models/nomic-embed-text"),
 		createMockModel("sentence-transformers/all-MiniLM-L6-v2", "embedding", "huggingface", "hf://sentence-transformers/all-MiniLM-L6-v2"),
+	}, nil
+}
+
+// ListProviders returns mock provider data matching LlamaStack's /v1/providers response format.
+func (m *MockLlamaStackClient) ListProviders(ctx context.Context) ([]models.LlamaStackProvider, error) {
+	return []models.LlamaStackProvider{
+		{API: "vector_io", ProviderID: "milvus", ProviderType: "remote::milvus"},
+		{API: "vector_io", ProviderID: "faiss", ProviderType: "inline::faiss"},
+		{API: "inference", ProviderID: "ollama", ProviderType: "remote::ollama"},
 	}, nil
 }
 

@@ -2,7 +2,7 @@ import { appChrome } from './appChrome';
 
 class McpCatalog {
   visit() {
-    cy.visit('/mcp-catalog');
+    cy.visit('/ai-hub/mcp-servers/catalog');
     this.wait();
   }
 
@@ -50,16 +50,12 @@ class McpCatalog {
     return cy.findByTestId(`mcp-catalog-card-${serverId}`);
   }
 
-  findCardDetailLink(serverId: string) {
+  findCardDetailsLink(serverId: string) {
     return cy.findByTestId(`mcp-catalog-card-detail-link-${serverId}`);
   }
 
   findCardDescription(serverId: string) {
     return cy.findByTestId(`mcp-catalog-card-description-${serverId}`);
-  }
-
-  findEmptyState() {
-    return cy.findByTestId('mcp-catalog-empty-search');
   }
 
   findResetFilters() {
@@ -73,11 +69,19 @@ class McpCatalog {
   findRetry() {
     return cy.findByTestId('mcp-catalog-retry');
   }
+
+  findMcpCategorySection() {
+    return cy.findByTestId('mcp-category-title-organization_mcp_servers');
+  }
+
+  findEmptyState() {
+    return cy.findByTestId('empty-mcp-catalog-state');
+  }
 }
 
 class McpServerDetails {
   visit(serverId: string) {
-    cy.visit(`/mcp-catalog/${serverId}`);
+    cy.visit(`/ai-hub/mcp-servers/catalog/${serverId}`);
     this.wait();
   }
 
@@ -95,7 +99,7 @@ class McpServerDetails {
   }
 
   findDeployButton() {
-    return cy.findByTestId('deploy-mcp-server-button');
+    return cy.findByTestId('mcp-deploy-button');
   }
 
   findDescription() {
@@ -188,6 +192,10 @@ class McpServerDetails {
 
   findToolRevokedReason(toolName: string) {
     return cy.findByTestId(`mcp-tool-revoked-reason-${toolName}`);
+  }
+
+  findMcpNotFound() {
+    return cy.findByTestId('mcp-server-not-found', { timeout: 15000 });
   }
 }
 

@@ -12,7 +12,10 @@ import {
   StackItem,
   Alert,
   FormGroup,
+  FormHelperText,
   FormSection,
+  HelperText,
+  HelperTextItem,
   Spinner,
 } from '@patternfly/react-core';
 import { ExternalRouteField } from '../fields/ExternalRouteField';
@@ -24,6 +27,7 @@ import { type UseModelDeploymentWizardState } from '../useDeploymentWizard';
 import { AvailableAiAssetsFieldsComponent } from '../fields/ModelAvailabilityFields';
 import { showAuthWarning } from '../hooks/useAuthWarning';
 import type { ExternalDataMap } from '../ExternalDataLoader';
+import { GenericFieldRenderer } from '../fields/GenericFieldRenderer';
 
 export const accessReviewResource: AccessReviewResourceAttributes = {
   group: 'rbac.authorization.k8s.io',
@@ -53,7 +57,9 @@ export const AdvancedSettingsStepContent: React.FC<AdvancedSettingsStepContentPr
     if (!modelServerData || !templates || templates.length === 0) {
       return undefined;
     }
-    const template = templates.find((tmpl) => tmpl.metadata.name === modelServerData.name);
+    const template = templates.find(
+      (tmpl) => tmpl.metadata.name === modelServerData.selection?.name,
+    );
 
     return template?.objects[0];
   }, [
@@ -116,10 +122,18 @@ export const AdvancedSettingsStepContent: React.FC<AdvancedSettingsStepContentPr
             {wizardState.state.modelAvailability.showField && (
               <StackItem>
                 <FormGroup
-                  label="Model playground availability"
+                  label="Model availability"
                   data-testid="model-playground-availability"
                   fieldId="model-playground-availability"
                 >
+                  <FormHelperText className="pf-v6-u-mb-md">
+                    <HelperText>
+                      <HelperTextItem>
+                        Make this model available to other users by publishing it on the{' '}
+                        <b>AI asset endpoints</b> page.
+                      </HelperTextItem>
+                    </HelperText>
+                  </FormHelperText>
                   <AvailableAiAssetsFieldsComponent
                     data={wizardState.state.modelAvailability.data}
                     setData={wizardState.state.modelAvailability.setData}
@@ -129,6 +143,11 @@ export const AdvancedSettingsStepContent: React.FC<AdvancedSettingsStepContentPr
                 </FormGroup>
               </StackItem>
             )}
+            <GenericFieldRenderer
+              wizardState={wizardState}
+              externalData={externalData}
+              parentId="networking"
+            />
             {isExternalRouteVisible && (
               <StackItem>
                 <FormGroup
@@ -152,7 +171,7 @@ export const AdvancedSettingsStepContent: React.FC<AdvancedSettingsStepContentPr
               >
                 <TokenAuthenticationField
                   tokens={tokenAuthData}
-                  allowCreate={allowCreate}
+                  allowCreate={allowCreate && !wizardState.state.tokenAuthentication.isDisabled}
                   onChange={wizardState.state.tokenAuthentication.setData}
                 />
               </FormGroup>
